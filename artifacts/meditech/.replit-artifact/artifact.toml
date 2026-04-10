@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MediTech - Smart Healthcare Management"
+version = "1.0.0"
+id = "artifacts/meditech"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18140
+
+[services.development]
+run = "pnpm --filter @workspace/meditech run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/meditech", "run", "build" ]
+publicDir = "artifacts/meditech/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18140"
+BASE_PATH = "/"

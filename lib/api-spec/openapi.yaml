@@ -3,20 +3,33 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MediTech Smart Healthcare Management System API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: hospitals
+    description: Hospital management
+  - name: resources
+    description: Real-time resource tracking
+  - name: ambulances
+    description: Ambulance booking
+  - name: analytics
+    description: Predictive analytics and hotspots
+  - name: alerts
+    description: Emergency alerts
+  - name: bookings
+    description: Ambulance booking management
+  - name: dashboard
+    description: Dashboard summary endpoints
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +37,324 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /hospitals:
+    get:
+      operationId: listHospitals
+      tags: [hospitals]
+      summary: List all hospitals
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of hospitals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hospital"
+
+  /hospitals/{id}:
+    get:
+      operationId: getHospital
+      tags: [hospitals]
+      summary: Get hospital details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Hospital details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hospital"
+
+  /hospitals/{id}/resources:
+    get:
+      operationId: getHospitalResources
+      tags: [resources]
+      summary: Get real-time resources for a hospital
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Hospital resources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalResources"
+    put:
+      operationId: updateHospitalResources
+      tags: [resources]
+      summary: Update hospital resource counts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHospitalResourcesBody"
+      responses:
+        "200":
+          description: Updated resources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalResources"
+
+  /resources/summary:
+    get:
+      operationId: getResourcesSummary
+      tags: [resources]
+      summary: Aggregated resource availability across all hospitals
+      responses:
+        "200":
+          description: Resources summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcesSummary"
+
+  /ambulances:
+    get:
+      operationId: listAmbulances
+      tags: [ambulances]
+      summary: List all ambulances
+      parameters:
+        - name: hospitalId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, dispatched, maintenance]
+      responses:
+        "200":
+          description: List of ambulances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ambulance"
+
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List ambulance bookings
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Book an ambulance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingBody"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get booking details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}/status:
+    put:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Update booking status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookingStatusBody"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /analytics/hotspots:
+    get:
+      operationId: getEmergencyHotspots
+      tags: [analytics]
+      summary: Get predicted emergency hotspots
+      responses:
+        "200":
+          description: Emergency hotspots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmergencyHotspot"
+
+  /analytics/trends:
+    get:
+      operationId: getAnalyticsTrends
+      tags: [analytics]
+      summary: Get emergency trends over time
+      responses:
+        "200":
+          description: Analytics trends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AnalyticsTrend"
+
+  /analytics/response-time:
+    get:
+      operationId: getResponseTimeStats
+      tags: [analytics]
+      summary: Get average response time statistics
+      responses:
+        "200":
+          description: Response time stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseTimeStats"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List emergency alerts
+      responses:
+        "200":
+          description: Emergency alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmergencyAlert"
+    post:
+      operationId: createAlert
+      tags: [alerts]
+      summary: Create emergency alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertBody"
+      responses:
+        "201":
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyAlert"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get aggregated dashboard metrics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent-bookings:
+    get:
+      operationId: getRecentBookings
+      tags: [dashboard]
+      summary: Get recent ambulance bookings for dashboard
+      responses:
+        "200":
+          description: Recent bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /dashboard/critical-hospitals:
+    get:
+      operationId: getCriticalHospitals
+      tags: [dashboard]
+      summary: Get hospitals with critically low resources
+      responses:
+        "200":
+          description: Critical hospitals list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hospital"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +365,404 @@ components:
       required:
         - status
 
+    Hospital:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        phone:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        type:
+          type: string
+          enum: [government, private, trust]
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - address
+        - city
+        - state
+        - phone
+        - latitude
+        - longitude
+        - type
+        - status
+        - createdAt
+
+    HospitalResources:
+      type: object
+      properties:
+        id:
+          type: integer
+        hospitalId:
+          type: integer
+        icuBeds:
+          type: integer
+        icuBedsAvailable:
+          type: integer
+        generalBeds:
+          type: integer
+        generalBedsAvailable:
+          type: integer
+        oxygenCylinders:
+          type: integer
+        oxygenCylindersAvailable:
+          type: integer
+        ambulancesTotal:
+          type: integer
+        ambulancesAvailable:
+          type: integer
+        doctorsOnDuty:
+          type: integer
+        ventilators:
+          type: integer
+        ventilatorsAvailable:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - hospitalId
+        - icuBeds
+        - icuBedsAvailable
+        - generalBeds
+        - generalBedsAvailable
+        - oxygenCylinders
+        - oxygenCylindersAvailable
+        - ambulancesTotal
+        - ambulancesAvailable
+        - doctorsOnDuty
+        - ventilators
+        - ventilatorsAvailable
+        - updatedAt
+
+    UpdateHospitalResourcesBody:
+      type: object
+      properties:
+        icuBedsAvailable:
+          type: integer
+        generalBedsAvailable:
+          type: integer
+        oxygenCylindersAvailable:
+          type: integer
+        ambulancesAvailable:
+          type: integer
+        doctorsOnDuty:
+          type: integer
+        ventilatorsAvailable:
+          type: integer
+
+    ResourcesSummary:
+      type: object
+      properties:
+        totalHospitals:
+          type: integer
+        totalIcuBeds:
+          type: integer
+        availableIcuBeds:
+          type: integer
+        totalGeneralBeds:
+          type: integer
+        availableGeneralBeds:
+          type: integer
+        totalAmbulances:
+          type: integer
+        availableAmbulances:
+          type: integer
+        totalOxygen:
+          type: integer
+        availableOxygen:
+          type: integer
+        totalDoctors:
+          type: integer
+        activeBookings:
+          type: integer
+      required:
+        - totalHospitals
+        - totalIcuBeds
+        - availableIcuBeds
+        - totalGeneralBeds
+        - availableGeneralBeds
+        - totalAmbulances
+        - availableAmbulances
+        - totalOxygen
+        - availableOxygen
+        - totalDoctors
+        - activeBookings
+
+    Ambulance:
+      type: object
+      properties:
+        id:
+          type: integer
+        hospitalId:
+          type: integer
+        vehicleNumber:
+          type: string
+        driverName:
+          type: string
+        driverPhone:
+          type: string
+        status:
+          type: string
+          enum: [available, dispatched, maintenance]
+        type:
+          type: string
+          enum: [basic, advanced, icu]
+        latitude:
+          type: number
+        longitude:
+          type: number
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - hospitalId
+        - vehicleNumber
+        - driverName
+        - driverPhone
+        - status
+        - type
+        - latitude
+        - longitude
+        - updatedAt
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        patientName:
+          type: string
+        patientPhone:
+          type: string
+        pickupAddress:
+          type: string
+        destinationHospitalId:
+          type: integer
+        ambulanceId:
+          type: integer
+        status:
+          type: string
+          enum: [pending, confirmed, dispatched, completed, cancelled]
+        emergency:
+          type: string
+          enum: [critical, moderate, low]
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - patientName
+        - patientPhone
+        - pickupAddress
+        - destinationHospitalId
+        - status
+        - emergency
+        - createdAt
+        - updatedAt
+
+    CreateBookingBody:
+      type: object
+      properties:
+        patientName:
+          type: string
+        patientPhone:
+          type: string
+        pickupAddress:
+          type: string
+        destinationHospitalId:
+          type: integer
+        emergency:
+          type: string
+          enum: [critical, moderate, low]
+        notes:
+          type: string
+      required:
+        - patientName
+        - patientPhone
+        - pickupAddress
+        - destinationHospitalId
+        - emergency
+
+    UpdateBookingStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, dispatched, completed, cancelled]
+      required:
+        - status
+
+    EmergencyHotspot:
+      type: object
+      properties:
+        id:
+          type: integer
+        area:
+          type: string
+        city:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        riskLevel:
+          type: string
+          enum: [high, medium, low]
+        incidentCount:
+          type: integer
+        predictedDemand:
+          type: integer
+        description:
+          type: string
+      required:
+        - id
+        - area
+        - city
+        - latitude
+        - longitude
+        - riskLevel
+        - incidentCount
+        - predictedDemand
+        - description
+
+    AnalyticsTrend:
+      type: object
+      properties:
+        month:
+          type: string
+        emergencyCalls:
+          type: integer
+        ambulancesDispatched:
+          type: integer
+        avgResponseTime:
+          type: number
+        criticalCases:
+          type: integer
+      required:
+        - month
+        - emergencyCalls
+        - ambulancesDispatched
+        - avgResponseTime
+        - criticalCases
+
+    ResponseTimeStats:
+      type: object
+      properties:
+        avgResponseTimeMinutes:
+          type: number
+        bestResponseTimeMinutes:
+          type: number
+        totalEmergencies:
+          type: integer
+        successRate:
+          type: number
+        monthlyImprovement:
+          type: number
+      required:
+        - avgResponseTimeMinutes
+        - bestResponseTimeMinutes
+        - totalEmergencies
+        - successRate
+        - monthlyImprovement
+
+    EmergencyAlert:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        hospitalId:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - message
+        - severity
+        - isActive
+        - createdAt
+
+    CreateAlertBody:
+      type: object
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        hospitalId:
+          type: integer
+      required:
+        - title
+        - message
+        - severity
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalHospitals:
+          type: integer
+        activeAmbulances:
+          type: integer
+        availableIcuBeds:
+          type: integer
+        availableGeneralBeds:
+          type: integer
+        pendingBookings:
+          type: integer
+        criticalAlerts:
+          type: integer
+        avgResponseTime:
+          type: number
+        hospitalsAtCapacity:
+          type: integer
+        totalDoctorsOnDuty:
+          type: integer
+      required:
+        - totalHospitals
+        - activeAmbulances
+        - availableIcuBeds
+        - availableGeneralBeds
+        - pendingBookings
+        - criticalAlerts
+        - avgResponseTime
+        - hospitalsAtCapacity
+        - totalDoctorsOnDuty
