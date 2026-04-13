@@ -117,9 +117,9 @@ export function PwaInstallPrompt() {
             <div className="px-5 py-4">
               {isIos ? (
                 <>
-                  <p className="text-sm font-semibold text-foreground mb-0.5">iPhone / iPad par Install karein</p>
+                  <p className="text-sm font-semibold text-foreground mb-0.5">Install on iPhone / iPad</p>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Home Screen pe add karein — app ki tarah open hoga, offline bhi kaam karega.
+                    Add to your Home Screen for a full app experience — works offline too.
                   </p>
                   <div className="space-y-2.5 mb-4">
                     <div className="flex items-center gap-3 bg-muted/60 rounded-xl p-3">
@@ -128,7 +128,7 @@ export function PwaInstallPrompt() {
                       </div>
                       <div>
                         <p className="text-xs font-semibold">Step 1</p>
-                        <p className="text-xs text-muted-foreground">Safari mein neeche Share button tap karein</p>
+                        <p className="text-xs text-muted-foreground">Tap the Share button at the bottom of Safari</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 bg-muted/60 rounded-xl p-3">
@@ -137,19 +137,19 @@ export function PwaInstallPrompt() {
                       </div>
                       <div>
                         <p className="text-xs font-semibold">Step 2</p>
-                        <p className="text-xs text-muted-foreground">"Add to Home Screen" select karein, phir Add</p>
+                        <p className="text-xs text-muted-foreground">Select "Add to Home Screen", then tap Add</p>
                       </div>
                     </div>
                   </div>
-                  <Button className="w-full" onClick={dismiss}>Samajh gaya</Button>
+                  <Button className="w-full" onClick={dismiss}>Got it</Button>
                 </>
               ) : (
                 <>
                   <p className="text-sm font-semibold text-foreground mb-0.5">
-                    Is device par Install karein
+                    Install MediTech on this device
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Home screen se directly open karein, browser ki zaroorat nahi — offline bhi kaam karta hai.
+                    Launch directly from your home screen — no browser needed, works offline too.
                   </p>
 
                   <div className="grid grid-cols-3 gap-2 mb-4">
@@ -167,13 +167,13 @@ export function PwaInstallPrompt() {
 
                   {!hasNativePrompt && (
                     <p className="text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2 mb-3 text-center">
-                      Install ke liye browser ke address bar mein install icon dekhen
+                      Look for the install icon in your browser's address bar
                     </p>
                   )}
 
                   <div className="flex gap-2">
                     <Button variant="outline" className="flex-1" onClick={dismiss}>
-                      Baad mein
+                      Not now
                     </Button>
                     <Button
                       className="flex-1 gap-2"
@@ -181,7 +181,7 @@ export function PwaInstallPrompt() {
                       disabled={installing}
                     >
                       <Download className="h-4 w-4" />
-                      {installing ? "Installing..." : "Install karein"}
+                      {installing ? "Installing..." : "Install App"}
                     </Button>
                   </div>
                 </>
