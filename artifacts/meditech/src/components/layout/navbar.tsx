@@ -3,6 +3,7 @@ import { Activity, PhoneCall, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { SidebarNav } from "./sidebar-nav";
+import { PwaInstallButton } from "@/components/pwa-install-button";
 
 export function Navbar() {
   return (
@@ -34,13 +35,14 @@ export function Navbar() {
           </Link>
         </div>
 
-        <div className="ml-auto flex items-center space-x-4">
+        <div className="ml-auto flex items-center space-x-3">
           <div className="hidden sm:block">
             <div className="flex items-center gap-2 text-sm font-medium">
               <div className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-muted-foreground">All Systems Operational</span>
             </div>
           </div>
+          <PwaInstallButton />
           <Button variant="destructive" size="sm" className="gap-2 font-bold animate-in fade-in zoom-in" asChild>
             <a href="tel:+91112">
               <PhoneCall className="h-4 w-4" />
