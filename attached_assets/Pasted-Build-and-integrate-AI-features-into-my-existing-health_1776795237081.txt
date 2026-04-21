@@ -1,0 +1,119 @@
+Build and integrate AI features into my existing healthcare web application.
+
+My current app already includes:
+
+* hospital listing
+* bed availability
+* blood availability
+* doctor timing
+* slot booking
+* ambulance emergency system
+
+Now extend this app by adding the following AI-powered modules using Python (Flask backend):
+
+---
+
+1. SYMPTOM-BASED DISEASE PREDICTION
+
+* Create a REST API endpoint: /predict
+* Input: list of symptoms (JSON)
+* Use a simple ML model (RandomForest or DecisionTree)
+* Output: predicted disease name
+
+---
+
+2. SKIN / FACE / WOUND IMAGE DETECTION
+
+* Create endpoint: /image-detect
+* Input: uploaded image
+* Use a lightweight pretrained CNN model (MobileNet or similar)
+* Detect categories:
+
+  * acne
+  * fungal infection
+  * normal skin
+  * wound (normal or infected)
+* Output: predicted condition
+
+---
+
+3. HOME CARE GUIDANCE SYSTEM
+
+* Based on predicted disease, return:
+
+  * home remedies
+  * when to visit doctor
+  * emergency warning
+* Use dictionary-based logic (no ML needed)
+* Endpoint: /guidance
+
+---
+
+4. PRESCRIPTION SCANNER (OCR)
+
+* Endpoint: /scan-prescription
+* Input: image of prescription
+* Use pytesseract OCR to extract text
+* Identify medicine names from text (simple keyword matching)
+* Output:
+
+  * extracted text
+  * detected medicines
+
+---
+
+5. SPECIALIST RECOMMENDATION
+
+* Map disease to doctor type:
+
+  * skin → dermatologist
+  * wound → general surgeon
+  * fracture suspicion → orthopedic
+* Return specialist name in API response
+
+---
+
+6. INTEGRATION REQUIREMENTS
+
+* Keep backend in Flask (app.py)
+* Use REST APIs for all modules
+* Ensure all endpoints return JSON
+* Connect these APIs to my existing frontend using fetch/AJAX
+
+---
+
+7. TECH STACK
+
+* Python (Flask)
+* scikit-learn
+* TensorFlow/Keras (for image model)
+* pytesseract (OCR)
+* OpenCV / PIL for image processing
+
+---
+
+8. IMPORTANT
+
+* Keep models simple and lightweight
+* Do NOT build complex deep learning models from scratch
+* Focus on working prototype
+
+---
+
+9. OUTPUT REQUIREMENTS
+   Generate:
+
+* complete Flask backend code (app.py)
+* sample ML model loading
+* API endpoints for all features
+* example frontend fetch calls (JavaScript)
+* instructions to run the project
+
+---
+
+10. ADD DISCLAIMER IN RESPONSES:
+    "This system provides preliminary guidance and is not a medical diagnosis."
+
+---
+
+Ensure the code is clean, modular, and easy to integrate into an existing Replit project.
