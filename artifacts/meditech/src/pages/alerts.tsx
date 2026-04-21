@@ -221,14 +221,14 @@ export default function Alerts() {
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20 w-full" /></CardContent></Card>)}
         </div>
-      ) : alerts?.length === 0 ? (
+      ) : !Array.isArray(alerts) || alerts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Bell className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-muted-foreground">No active alerts at this time.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {[...alerts!].reverse().map(alert => {
+          {[...alerts].reverse().map(alert => {
             const hospital = hospitals?.find(h => h.id === alert.hospitalId);
             return (
               <Card
