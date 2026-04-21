@@ -20,6 +20,7 @@ import ImageDetect from "@/pages/image-detect";
 import HomeCare from "@/pages/home-care";
 import PrescriptionScanner from "@/pages/prescription-scanner";
 import Specialist from "@/pages/specialist";
+import AIChatbot from "@/pages/ai-chatbot";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/ai/home-care" component={HomeCare} />
       <Route path="/ai/prescription-scanner" component={PrescriptionScanner} />
       <Route path="/ai/specialist" component={Specialist} />
+      <Route path="/ai/chatbot" component={AIChatbot} />
       <Route component={NotFound} />
     </Switch>
   );

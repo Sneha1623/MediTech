@@ -14,6 +14,7 @@ import {
   FileSearch,
   UserCheck,
   Stethoscope,
+  MessageCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -29,6 +30,7 @@ const mainNavItems = [
 
 const aiNavItems = [
   { href: "/ai", label: "AI Tools Hub", icon: Stethoscope },
+  { href: "/ai/chatbot", label: "Health Chatbot 🎤", icon: MessageCircle },
   { href: "/ai/symptom-checker", label: "Symptom Checker", icon: Brain },
   { href: "/ai/image-detect", label: "Skin & Wound AI", icon: ScanLine },
   { href: "/ai/home-care", label: "Home Care", icon: Heart },

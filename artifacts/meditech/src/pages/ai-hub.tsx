@@ -1,9 +1,19 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, ScanLine, Heart, FileSearch, UserCheck, Stethoscope } from "lucide-react";
+import { Brain, ScanLine, Heart, FileSearch, UserCheck, Stethoscope, MessageCircle } from "lucide-react";
 
 const AI_MODULES = [
+  {
+    href: "/ai/chatbot",
+    icon: MessageCircle,
+    title: "Health Chatbot",
+    description: "Voice & text AI assistant in English, Hindi, and Odia. Elderly-friendly with voice input/output.",
+    badge: "🎤 Voice + Multilingual",
+    color: "bg-indigo-50 border-indigo-300 hover:bg-indigo-100 col-span-full md:col-span-2 xl:col-span-3",
+    iconColor: "text-indigo-600",
+    featured: true,
+  },
   {
     href: "/ai/symptom-checker",
     icon: Brain,

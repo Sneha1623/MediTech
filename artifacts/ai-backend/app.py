@@ -309,6 +309,101 @@ def list_symptoms():
     return jsonify({"symptoms": SYMPTOMS, "diseases": DISEASES})
 
 
+# ---------------------------------------------------------------------------
+# 6. AI Chatbot (multilingual, elderly-friendly)
+# ---------------------------------------------------------------------------
+@app.route("/ai-api/chat", methods=["POST"])
+def chat():
+    try:
+        data = request.get_json(force=True)
+        message = (data.get("message") or "").strip()
+        preferred_lang = data.get("language", "").strip()
+
+        if not message:
+            return jsonify({"error": "Please send a message"}), 400
+
+        from ml.chatbot_data import (
+            detect_language, match_intent,
+            GREETING_RESPONSES, SYMPTOM_KEYWORDS, DEFAULT_RESPONSES, DISCLAIMER
+        )
+
+        lang = preferred_lang if preferred_lang in ("en", "hi", "od") else detect_language(message)
+        intent, matched_symptom = match_intent(message)
+
+        response_text = ""
+        urgency = "low"
+        related_symptom_keys = []
+
+        if intent == "greeting":
+            response_text = GREETING_RESPONSES[lang]
+        elif intent == "symptom" and matched_symptom:
+            symptom_data = SYMPTOM_KEYWORDS[matched_symptom]
+            response_text = symptom_data["response"][lang]
+            urgency = symptom_data.get("urgency", "low")
+            related_symptom_keys = [matched_symptom]
+        else:
+            response_text = DEFAULT_RESPONSES[lang]
+
+        if intent != "greeting":
+            response_text += "\n\n— " + DISCLAIMER[lang]
+
+        follow_ups = {
+            "en": ["Check home care guidance", "Find a specialist", "Symptom checker"],
+            "hi": ["घरेलू उपचार देखें", "विशेषज्ञ खोजें", "लक्षण जांच"],
+            "od": ["ଘରୋଇ ଚିକିତ୍ସା ଦେଖନ୍ତୁ", "ବିଶେଷଜ୍ଞ ଖୋଜନ୍ତୁ", "ଲକ୍ଷଣ ଯାଞ୍ଚ"],
+        }
+
+        return jsonify({
+            "response": response_text,
+            "detected_language": lang,
+            "intent": intent,
+            "matched_condition": matched_symptom,
+            "urgency": urgency,
+            "follow_up_suggestions": follow_ups[lang],
+        })
+
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# 7. Translation endpoint
+# ---------------------------------------------------------------------------
+@app.route("/ai-api/translate", methods=["POST"])
+def translate():
+    try:
+        data = request.get_json(force=True)
+        term = (data.get("term") or "").strip().lower()
+        target_lang = data.get("target_lang", "en").strip()
+
+        from ml.chatbot_data import TRANSLATIONS
+
+        if target_lang not in ("en", "hi", "od"):
+            return jsonify({"error": "Supported languages: en, hi, od"}), 400
+
+        translations = {}
+        for key, val in TRANSLATIONS.items():
+            if term in key.lower() or term in val.get("en", "").lower():
+                translations[key] = val
+
+        if not translations:
+            return jsonify({"translated": term, "note": "Term not found in dictionary", "available_terms": list(TRANSLATIONS.keys())})
+
+        best_key = list(translations.keys())[0]
+        translated = translations[best_key][target_lang]
+
+        return jsonify({
+            "original": term,
+            "translated": translated,
+            "target_language": target_lang,
+            "all_translations": translations[best_key],
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

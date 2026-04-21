@@ -1,0 +1,150 @@
+Enhance my existing healthcare web application by adding a multilingual voice-based AI assistant and chatbot.
+
+My app already includes:
+
+* hospital and doctor system
+* AI disease prediction
+* image detection (skin/wound)
+* prescription scanner
+
+Now add the following features:
+
+---
+
+1. MULTILINGUAL SUPPORT (English, Hindi, Odia)
+
+* Detect user language automatically from input
+* Support text input in:
+
+  * English
+  * Hindi
+  * Odia
+* Use a simple dictionary-based translation system OR lightweight translation API
+* Ensure responses are generated in the same language as user input
+
+---
+
+2. VOICE INPUT (Speech-to-Text)
+
+* Allow user to speak instead of typing
+* Convert speech to text using:
+
+  * Web Speech API (for browser) OR
+  * Whisper / Google Speech API (backend)
+* Must support English, Hindi, and Odia
+
+---
+
+3. VOICE OUTPUT (Text-to-Speech)
+
+* Convert AI responses into voice
+* Use:
+
+  * gTTS or browser speech synthesis
+* Speak in the detected user language
+
+---
+
+4. AI CHATBOT (ELDERLY-FRIENDLY)
+
+* Create chatbot endpoint: /chat
+* Input: user message (text/voice)
+* Output: simple, clear response
+
+Chatbot behavior:
+
+* Understand symptoms in simple language
+* Guide user step-by-step
+* Suggest:
+
+  * home care
+  * doctor visit
+  * emergency action
+* Keep responses:
+
+  * short
+  * easy to understand
+  * supportive tone
+
+Example:
+User: "मुझे बुखार है"
+Response: "आपको आराम करना चाहिए और पानी ज्यादा पीना चाहिए। अगर 2 दिन में ठीक नहीं हो तो डॉक्टर से मिलें।"
+
+---
+
+5. ELDERLY MODE
+
+* Add simple UI mode:
+
+  * large buttons
+  * minimal text
+  * voice-first interaction
+* Chatbot should:
+
+  * speak slowly
+  * avoid complex medical terms
+
+---
+
+6. INTEGRATION WITH EXISTING AI FEATURES
+
+* Chatbot should connect with:
+
+  * symptom prediction API
+  * image detection results
+  * home care guidance
+* Provide unified response
+
+---
+
+7. FRONTEND FEATURES
+
+* Add:
+
+  * microphone button 🎤
+  * language indicator 🌐
+  * chat interface 💬
+* Use JavaScript for:
+
+  * speech recognition
+  * speech synthesis
+
+---
+
+8. BACKEND (Flask)
+
+* Add endpoints:
+
+  * /chat
+  * /translate (optional)
+* Process text input and return response
+
+---
+
+9. KEEP IT SIMPLE
+
+* Do NOT use heavy NLP models
+* Use:
+
+  * keyword matching
+  * rule-based responses
+* Focus on working prototype
+
+---
+
+10. OUTPUT REQUIREMENTS
+    Generate:
+
+* Flask backend code for chatbot and language handling
+* JavaScript code for voice input/output
+* multilingual response examples
+* integration with existing APIs
+
+---
+
+11. ADD DISCLAIMER:
+    "This system provides general guidance and is not a medical diagnosis."
+
+---
+
+Ensure the chatbot is simple, reliable, and usable by elderly users.
