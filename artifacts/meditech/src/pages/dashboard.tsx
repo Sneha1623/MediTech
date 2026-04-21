@@ -9,7 +9,8 @@ import {
   Building2,
   Clock,
   HeartPulse,
-  Stethoscope
+  Stethoscope,
+  CheckCircle2
 } from "lucide-react";
 import {
   useGetDashboardSummary,
@@ -21,6 +22,7 @@ import {
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
 function MetricCard({ title, value, icon: Icon, description, isLoading }: any) {
   return (
@@ -44,14 +46,15 @@ function MetricCard({ title, value, icon: Icon, description, isLoading }: any) {
 }
 
 export default function Dashboard() {
+  const { t } = useI18n();
+  const d = t.dashboard;
+
   const { data: summary, isLoading: isSummaryLoading } = useGetDashboardSummary({
     query: { queryKey: getGetDashboardSummaryQueryKey() }
   });
-
   const { data: criticalHospitals, isLoading: isCriticalLoading } = useGetCriticalHospitals({
     query: { queryKey: getGetCriticalHospitalsQueryKey() }
   });
-
   const { data: recentBookings, isLoading: isRecentLoading } = useGetRecentBookings({
     query: { queryKey: getGetRecentBookingsQueryKey() }
   });
@@ -59,73 +62,27 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
-        <p className="text-muted-foreground">
-          Real-time snapshot of healthcare resources and emergency operations.
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{d.title}</h1>
+        <p className="text-muted-foreground">{d.subtitle}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total Hospitals"
-          value={summary?.totalHospitals ?? 0}
-          icon={Building2}
-          isLoading={isSummaryLoading}
-          description={`${summary?.hospitalsAtCapacity ?? 0} at full capacity`}
-        />
-        <MetricCard
-          title="Active Ambulances"
-          value={summary?.activeAmbulances ?? 0}
-          icon={Ambulance}
-          isLoading={isSummaryLoading}
-        />
-        <MetricCard
-          title="Avg Response Time"
-          value={`${summary?.avgResponseTime ?? 0} min`}
-          icon={Clock}
-          isLoading={isSummaryLoading}
-        />
-        <MetricCard
-          title="Critical Alerts"
-          value={summary?.criticalAlerts ?? 0}
-          icon={AlertTriangle}
-          isLoading={isSummaryLoading}
-          description="Action required immediately"
-        />
+        <MetricCard title={d.totalHospitals} value={summary?.totalHospitals ?? 0} icon={Building2} isLoading={isSummaryLoading} description={`${summary?.hospitalsAtCapacity ?? 0} ${d.atFullCapacity}`} />
+        <MetricCard title={d.activeAmbulances} value={summary?.activeAmbulances ?? 0} icon={Ambulance} isLoading={isSummaryLoading} />
+        <MetricCard title={d.avgResponseTime} value={`${summary?.avgResponseTime ?? 0} min`} icon={Clock} isLoading={isSummaryLoading} />
+        <MetricCard title={d.criticalAlerts} value={summary?.criticalAlerts ?? 0} icon={AlertTriangle} isLoading={isSummaryLoading} description={d.actionRequired} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Available ICU Beds"
-          value={summary?.availableIcuBeds ?? 0}
-          icon={HeartPulse}
-          isLoading={isSummaryLoading}
-        />
-        <MetricCard
-          title="Available Gen Beds"
-          value={summary?.availableGeneralBeds ?? 0}
-          icon={Bed}
-          isLoading={isSummaryLoading}
-        />
-        <MetricCard
-          title="Pending Bookings"
-          value={summary?.pendingBookings ?? 0}
-          icon={Activity}
-          isLoading={isSummaryLoading}
-        />
-        <MetricCard
-          title="Doctors on Duty"
-          value={summary?.totalDoctorsOnDuty ?? 0}
-          icon={Stethoscope}
-          isLoading={isSummaryLoading}
-        />
+        <MetricCard title={d.availableICUBeds} value={summary?.availableIcuBeds ?? 0} icon={HeartPulse} isLoading={isSummaryLoading} />
+        <MetricCard title={d.availableGenBeds} value={summary?.availableGeneralBeds ?? 0} icon={Bed} isLoading={isSummaryLoading} />
+        <MetricCard title={d.pendingBookings} value={summary?.pendingBookings ?? 0} icon={Activity} isLoading={isSummaryLoading} />
+        <MetricCard title={d.doctorsOnDuty} value={summary?.totalDoctorsOnDuty ?? 0} icon={Stethoscope} isLoading={isSummaryLoading} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Recent Emergency Bookings</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>{d.recentEmergencyBookings}</CardTitle></CardHeader>
           <CardContent>
             {isRecentLoading ? (
               <div className="space-y-4">
@@ -140,15 +97,10 @@ export default function Dashboard() {
                     <div>
                       <p className="font-medium">{booking.patientName}</p>
                       <p className="text-sm text-muted-foreground">{booking.pickupAddress}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(booking.createdAt), "MMM d, h:mm a")}
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{format(new Date(booking.createdAt), "MMM d, h:mm a")}</p>
                     </div>
                     <div className="text-right">
-                      <Badge variant={
-                        booking.emergency === "critical" ? "destructive" :
-                        booking.emergency === "moderate" ? "warning" : "default"
-                      } className={booking.emergency === "moderate" ? "bg-amber-500 hover:bg-amber-600" : ""}>
+                      <Badge variant={booking.emergency === "critical" ? "destructive" : booking.emergency === "moderate" ? "warning" : "default"} className={booking.emergency === "moderate" ? "bg-amber-500 hover:bg-amber-600" : ""}>
                         {booking.emergency.toUpperCase()}
                       </Badge>
                       <p className="text-sm mt-2">{booking.status}</p>
@@ -157,12 +109,10 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm py-4">No recent bookings found.</p>
+              <p className="text-muted-foreground text-sm py-4">{d.noRecentBookings}</p>
             )}
             <div className="mt-4 pt-4 border-t">
-              <Link href="/bookings" className="text-sm text-primary hover:underline font-medium">
-                View all bookings →
-              </Link>
+              <Link href="/bookings" className="text-sm text-primary hover:underline font-medium">{d.viewAllBookings}</Link>
             </div>
           </CardContent>
         </Card>
@@ -171,7 +121,7 @@ export default function Dashboard() {
           <CardHeader className="bg-destructive/5 rounded-t-lg">
             <CardTitle className="text-destructive flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Hospitals at Capacity
+              {d.hospitalsAtCapacity}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -190,7 +140,7 @@ export default function Dashboard() {
                     </div>
                     <Link href={`/hospitals/${hospital.id}`}>
                       <Badge variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-white cursor-pointer transition-colors">
-                        View Resources
+                        {d.viewResources}
                       </Badge>
                     </Link>
                   </div>
@@ -199,37 +149,15 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4 opacity-50" />
-                <p>No hospitals currently at critical capacity.</p>
+                <p>{d.noCriticalHospitals}</p>
               </div>
             )}
             <div className="mt-4 pt-4 border-t">
-              <Link href="/hospitals" className="text-sm text-primary hover:underline font-medium">
-                View all hospitals →
-              </Link>
+              <Link href="/hospitals" className="text-sm text-primary hover:underline font-medium">{d.viewAllHospitals}</Link>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-}
-
-function CheckCircle2(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
   );
 }

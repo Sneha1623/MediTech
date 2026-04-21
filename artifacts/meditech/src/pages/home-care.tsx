@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Heart, ArrowLeft, Search, AlertTriangle, Clock, Home, Stethoscope } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const DISEASES = [
   "Influenza", "Common Cold", "Dengue Fever", "Malaria", "Typhoid",
@@ -26,6 +27,8 @@ export default function HomeCare() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const diseaseFromQuery = params.get("disease") || "";
+  const { t } = useI18n();
+  const h = t.homeCare;
 
   const [query, setQuery] = useState(diseaseFromQuery);
   const [result, setResult] = useState<GuidanceResult | null>(null);
@@ -44,7 +47,7 @@ export default function HomeCare() {
         body: JSON.stringify({ disease }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to get guidance");
+      if (!res.ok) throw new Error(data.error ?? "Failed to get guidance");
       setResult(data);
     } catch (e: any) {
       setError(e.message);
@@ -54,9 +57,7 @@ export default function HomeCare() {
   };
 
   useEffect(() => {
-    if (diseaseFromQuery) {
-      fetchGuidance(diseaseFromQuery);
-    }
+    if (diseaseFromQuery) fetchGuidance(diseaseFromQuery);
   }, []);
 
   const isEmergencyDisease = (disease: string) =>
@@ -71,27 +72,27 @@ export default function HomeCare() {
         <div>
           <div className="flex items-center gap-2">
             <Heart className="h-6 w-6 text-green-600" />
-            <h1 className="text-xl font-bold">Home Care Guidance</h1>
+            <h1 className="text-xl font-bold">{h.title}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Get home remedies and care advice for any condition</p>
+          <p className="text-sm text-muted-foreground">{h.subtitle}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Search Disease</CardTitle>
+          <CardTitle className="text-base">{h.searchDisease}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <Input
-              placeholder="Enter disease name..."
+              placeholder={h.searchDisease}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchGuidance(query)}
             />
             <Button onClick={() => fetchGuidance(query)} disabled={loading || !query.trim()}>
               <Search className="h-4 w-4 mr-2" />
-              {loading ? "Loading..." : "Get Guidance"}
+              {loading ? h.getting : h.getGuidance}
             </Button>
           </div>
 
@@ -128,7 +129,7 @@ export default function HomeCare() {
           {isEmergencyDisease(result.disease) && (
             <div className="flex items-center gap-2 bg-red-100 border border-red-300 rounded-lg p-3">
               <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
-              <p className="text-sm font-semibold text-red-700">This condition may require immediate medical attention.</p>
+              <p className="text-sm font-semibold text-red-700">{h.emergency}</p>
             </div>
           )}
 
@@ -145,7 +146,7 @@ export default function HomeCare() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Home className="h-4 w-4 text-green-600" />
-                <CardTitle className="text-base text-green-800">Home Remedies</CardTitle>
+                <CardTitle className="text-base text-green-800">{h.remedies}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -164,7 +165,7 @@ export default function HomeCare() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-600" />
-                <CardTitle className="text-base text-blue-800">When to Visit a Doctor</CardTitle>
+                <CardTitle className="text-base text-blue-800">{h.whenToVisit}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -176,7 +177,7 @@ export default function HomeCare() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
-                <CardTitle className="text-base text-red-800">Emergency Warning</CardTitle>
+                <CardTitle className="text-base text-red-800">{h.emergency}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -188,11 +189,11 @@ export default function HomeCare() {
             <Link href={`/ai/specialist?disease=${encodeURIComponent(result.disease)}`}>
               <Button variant="outline">
                 <Stethoscope className="h-4 w-4 mr-2" />
-                Find Specialist
+                {t.specialist.find}
               </Button>
             </Link>
             <Link href="/hospitals">
-              <Button>Book Hospital Visit</Button>
+              <Button>{t.nav.hospitals}</Button>
             </Link>
           </div>
 

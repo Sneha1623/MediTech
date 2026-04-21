@@ -1,14 +1,14 @@
 import { useListBookings, useUpdateBookingStatus, useListHospitals, getListBookingsQueryKey, getListHospitalsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { Ambulance, Clock, MapPin, Phone, User, Building2 } from "lucide-react";
+import { Ambulance, Clock, MapPin, Phone, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, string> = {
@@ -50,6 +50,8 @@ export default function Bookings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [filterStatus, setFilterStatus] = useState("all");
+  const { t } = useI18n();
+  const b = t.bookings;
 
   const { data: bookings, isLoading } = useListBookings({ query: { queryKey: getListBookingsQueryKey() } });
   const { data: hospitals } = useListHospitals({}, { query: { queryKey: getListHospitalsQueryKey({}) } });
@@ -58,34 +60,34 @@ export default function Bookings() {
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListBookingsQueryKey() });
-        toast({ title: "Status Updated", description: "Booking status has been updated successfully." });
+        toast({ title: b.statusUpdated, description: b.statusUpdatedDesc });
       },
       onError: () => {
-        toast({ title: "Update Failed", description: "Unable to update booking status.", variant: "destructive" });
+        toast({ title: b.updateFailed, description: b.updateFailedDesc, variant: "destructive" });
       },
     },
   });
 
-  const filteredBookings = bookings?.filter(b => filterStatus === "all" || b.status === filterStatus) ?? [];
+  const filteredBookings = bookings?.filter(bk => filterStatus === "all" || bk.status === filterStatus) ?? [];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Booking Management</h1>
-          <p className="text-muted-foreground">Track and manage all ambulance booking requests.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{b.title}</h1>
+          <p className="text-muted-foreground">{b.subtitle}</p>
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-[160px]" data-testid="select-booking-filter">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Bookings</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="dispatched">Dispatched</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="all">{b.allStatuses}</SelectItem>
+            <SelectItem value="pending">{b.pending}</SelectItem>
+            <SelectItem value="confirmed">{b.confirmed}</SelectItem>
+            <SelectItem value="dispatched">{b.dispatched}</SelectItem>
+            <SelectItem value="completed">{b.completed}</SelectItem>
+            <SelectItem value="cancelled">{b.cancelled}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -99,7 +101,7 @@ export default function Bookings() {
       ) : filteredBookings.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Ambulance className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No bookings found.</p>
+          <p className="text-muted-foreground">{b.noBookings}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -127,7 +129,7 @@ export default function Bookings() {
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Building2 className="h-3.5 w-3.5" />
-                            <span className="truncate">{hospital?.name ?? "Unknown Hospital"}</span>
+                            <span className="truncate">{hospital?.name ?? t.ambulances.unknownHospital}</span>
                           </div>
                           <div className="flex items-center gap-1.5 col-span-2">
                             <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -148,12 +150,12 @@ export default function Bookings() {
                             key={nextStatus}
                             size="sm"
                             variant={nextStatus === "cancelled" ? "destructive" : "default"}
-                            onClick={() => updateStatus.mutate({ id: booking.id, data: { status: nextStatus as "pending" | "confirmed" | "dispatched" | "completed" | "cancelled" } })}
+                            onClick={() => updateStatus.mutate({ id: booking.id, data: { status: nextStatus as any } })}
                             disabled={updateStatus.isPending}
                             className="capitalize"
                             data-testid={`button-status-${nextStatus}-${booking.id}`}
                           >
-                            {nextStatus === "cancelled" ? "Cancel" : `Mark ${nextStatus}`}
+                            {nextStatus === "cancelled" ? b.cancel : `${b.updateStatus}: ${nextStatus}`}
                           </Button>
                         ))}
                       </div>

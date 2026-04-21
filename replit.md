@@ -42,6 +42,28 @@ The Python Flask AI backend lives in `artifacts/ai-backend/` and is served at `/
 - Runtime: Python 3.11 (`.pythonlibs/` virtual env managed by uv)
 - Key packages: flask, flask-cors, scikit-learn, numpy, Pillow, pytesseract, opencv-python-headless
 
+## Multilingual System (i18n)
+
+The entire app is multilingual in **English, Hindi (हिंदी), and Odia (ଓଡ଼ିଆ)**.
+
+### Architecture
+- `artifacts/meditech/src/lib/translations.ts` — all EN/HI/OD strings for every page and section
+- `artifacts/meditech/src/lib/i18n.tsx` — React context, `useI18n` hook, localStorage persistence (`meditech-lang` key)
+- Language codes: `en` | `hi` | `od`; html lang attr updated dynamically
+- Language switcher: 3-button (EN / हि / ଓଡ) in the navbar — active state highlighted in primary indigo
+
+### Pages Translated
+All pages use `const { t } = useI18n()`:
+- Layout: navbar, sidebar-nav
+- Core: home, dashboard, hospitals, ambulances, book, bookings, analytics, alerts
+- AI: ai-hub, symptom-checker, image-detect, home-care, prescription-scanner, specialist, not-found
+- AI Chatbot (`ai-chatbot.tsx`): has its own internal EN/HI/OD strings (separate from global i18n, works standalone)
+
+### AI Chatbot
+- The chatbot (`/ai/chatbot`) has trilingual support built-in with voice input/output
+- Flask backend at `/ai-api/chat` and `/ai-api/translate` endpoints serve EN/HI/OD responses
+- Elderly mode: larger text + slower speech rate
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

@@ -4,11 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { TrendingDown, Clock, AlertTriangle, MapPin, Activity, Award } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
-function RiskBadge({ level }: { level: string }) {
-  if (level === "high") return <Badge className="bg-red-500 hover:bg-red-600 text-white">High Risk</Badge>;
-  if (level === "medium") return <Badge className="bg-amber-500 hover:bg-amber-600 text-white">Medium Risk</Badge>;
-  return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white">Low Risk</Badge>;
+function RiskBadge({ level, labels }: { level: string; labels: { highRisk: string; mediumRisk: string; lowRisk: string } }) {
+  if (level === "high") return <Badge className="bg-red-500 hover:bg-red-600 text-white">{labels.highRisk}</Badge>;
+  if (level === "medium") return <Badge className="bg-amber-500 hover:bg-amber-600 text-white">{labels.mediumRisk}</Badge>;
+  return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white">{labels.lowRisk}</Badge>;
 }
 
 function RiskBar({ level }: { level: string }) {
@@ -22,24 +23,22 @@ function RiskBar({ level }: { level: string }) {
 }
 
 export default function Analytics() {
-  const { data: hotspots, isLoading: hotspotsLoading } = useGetEmergencyHotspots({
-    query: { queryKey: getGetEmergencyHotspotsQueryKey() }
-  });
-  const { data: trends, isLoading: trendsLoading } = useGetAnalyticsTrends({
-    query: { queryKey: getGetAnalyticsTrendsQueryKey() }
-  });
-  const { data: responseStats, isLoading: statsLoading } = useGetResponseTimeStats({
-    query: { queryKey: getGetResponseTimeStatsQueryKey() }
-  });
+  const { t } = useI18n();
+  const a = t.analytics;
+
+  const { data: hotspots, isLoading: hotspotsLoading } = useGetEmergencyHotspots({ query: { queryKey: getGetEmergencyHotspotsQueryKey() } });
+  const { data: trends, isLoading: trendsLoading } = useGetAnalyticsTrends({ query: { queryKey: getGetAnalyticsTrendsQueryKey() } });
+  const { data: responseStats, isLoading: statsLoading } = useGetResponseTimeStats({ query: { queryKey: getGetResponseTimeStatsQueryKey() } });
+
+  const riskLabels = { highRisk: a.highRisk, mediumRisk: a.mediumRisk, lowRisk: a.lowRisk };
 
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Predictive Analytics</h1>
-        <p className="text-muted-foreground">Data-driven insights to improve emergency response and resource allocation.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{a.title}</h1>
+        <p className="text-muted-foreground">{a.subtitle}</p>
       </div>
 
-      {/* Response Time KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statsLoading ? (
           Array.from({ length: 4 }).map((_, i) => <Card key={i}><CardContent className="pt-4"><Skeleton className="h-16 w-full" /></CardContent></Card>)
@@ -49,7 +48,7 @@ export default function Analytics() {
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Clock className="h-4 w-4 text-primary" />
-                  <p className="text-xs text-muted-foreground">Avg Response</p>
+                  <p className="text-xs text-muted-foreground">{a.avgResponse}</p>
                 </div>
                 <p className="text-2xl font-bold" data-testid="stat-avg-response">{responseStats?.avgResponseTimeMinutes} min</p>
               </CardContent>
@@ -58,7 +57,7 @@ export default function Analytics() {
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Award className="h-4 w-4 text-emerald-500" />
-                  <p className="text-xs text-muted-foreground">Best Response</p>
+                  <p className="text-xs text-muted-foreground">{a.bestResponse}</p>
                 </div>
                 <p className="text-2xl font-bold text-emerald-600" data-testid="stat-best-response">{responseStats?.bestResponseTimeMinutes} min</p>
               </CardContent>
@@ -67,7 +66,7 @@ export default function Analytics() {
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Activity className="h-4 w-4 text-amber-500" />
-                  <p className="text-xs text-muted-foreground">Success Rate</p>
+                  <p className="text-xs text-muted-foreground">{a.peakHour}</p>
                 </div>
                 <p className="text-2xl font-bold text-amber-600" data-testid="stat-success-rate">{responseStats?.successRate}%</p>
               </CardContent>
@@ -76,7 +75,7 @@ export default function Analytics() {
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingDown className="h-4 w-4 text-primary" />
-                  <p className="text-xs text-muted-foreground">Monthly Improvement</p>
+                  <p className="text-xs text-muted-foreground">{a.totalEmergencies}</p>
                 </div>
                 <p className="text-2xl font-bold text-primary" data-testid="stat-improvement">-{responseStats?.monthlyImprovement}%</p>
               </CardContent>
@@ -85,12 +84,11 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Emergency Calls — Monthly Trend</CardTitle>
-            <CardDescription>Total emergency calls vs ambulances dispatched</CardDescription>
+            <CardTitle className="text-base">{a.emergencyTrend}</CardTitle>
+            <CardDescription>{a.emergencyTrendDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             {trendsLoading ? <Skeleton className="h-64 w-full" /> : (
@@ -111,8 +109,8 @@ export default function Analytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Response Time Trend</CardTitle>
-            <CardDescription>Average response time per month (minutes)</CardDescription>
+            <CardTitle className="text-base">{a.responseTimeTrend}</CardTitle>
+            <CardDescription>{a.responseTimeTrendDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             {trendsLoading ? <Skeleton className="h-64 w-full" /> : (
@@ -130,11 +128,10 @@ export default function Analytics() {
         </Card>
       </div>
 
-      {/* Emergency Hotspots */}
       <Card>
         <CardHeader>
-          <CardTitle>Predicted Emergency Hotspots</CardTitle>
-          <CardDescription>AI-identified high-risk zones requiring pre-positioned ambulance coverage</CardDescription>
+          <CardTitle>{a.hotspots}</CardTitle>
+          <CardDescription>{a.hotspotsDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           {hotspotsLoading ? (
@@ -144,11 +141,7 @@ export default function Analytics() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {hotspots?.map(hotspot => (
-                <div
-                  key={hotspot.id}
-                  className="border rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow"
-                  data-testid={`card-hotspot-${hotspot.id}`}
-                >
+                <div key={hotspot.id} className="border rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow" data-testid={`card-hotspot-${hotspot.id}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -157,7 +150,7 @@ export default function Analytics() {
                         <p className="text-xs text-muted-foreground">{hotspot.city}</p>
                       </div>
                     </div>
-                    <RiskBadge level={hotspot.riskLevel} />
+                    <RiskBadge level={hotspot.riskLevel} labels={riskLabels} />
                   </div>
                   <RiskBar level={hotspot.riskLevel} />
                   <p className="text-sm text-muted-foreground leading-relaxed">{hotspot.description}</p>

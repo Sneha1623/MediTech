@@ -16,6 +16,7 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { AlertTriangle, Info, Bell, Plus, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 
 const alertSchema = z.object({
   title: z.string().min(3, "Title required"),
@@ -26,10 +27,10 @@ const alertSchema = z.object({
 
 type AlertForm = z.infer<typeof alertSchema>;
 
-function SeverityBadge({ severity }: { severity: string }) {
-  if (severity === "critical") return <Badge className="bg-red-500 hover:bg-red-600 text-white gap-1"><ShieldAlert className="h-3 w-3" />Critical</Badge>;
-  if (severity === "warning") return <Badge className="bg-amber-500 hover:bg-amber-600 text-white gap-1"><AlertTriangle className="h-3 w-3" />Warning</Badge>;
-  return <Badge variant="secondary" className="gap-1"><Info className="h-3 w-3" />Info</Badge>;
+function SeverityBadge({ severity, labels }: { severity: string; labels: { critical: string; warning: string; info: string } }) {
+  if (severity === "critical") return <Badge className="bg-red-500 hover:bg-red-600 text-white gap-1"><ShieldAlert className="h-3 w-3" />{labels.critical}</Badge>;
+  if (severity === "warning") return <Badge className="bg-amber-500 hover:bg-amber-600 text-white gap-1"><AlertTriangle className="h-3 w-3" />{labels.warning}</Badge>;
+  return <Badge variant="secondary" className="gap-1"><Info className="h-3 w-3" />{labels.info}</Badge>;
 }
 
 function AlertIcon({ severity }: { severity: string }) {
@@ -42,6 +43,8 @@ export default function Alerts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
+  const a = t.alerts;
 
   const { data: alerts, isLoading } = useListAlerts({ query: { queryKey: getListAlertsQueryKey() } });
   const { data: hospitals } = useListHospitals({}, { query: { queryKey: getListHospitalsQueryKey({}) } });
@@ -50,12 +53,12 @@ export default function Alerts() {
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListAlertsQueryKey() });
-        toast({ title: "Alert Created", description: "Emergency alert has been broadcast." });
+        toast({ title: a.alertCreated, description: a.alertCreatedDesc });
         setOpen(false);
         form.reset();
       },
       onError: () => {
-        toast({ title: "Failed", description: "Unable to create alert.", variant: "destructive" });
+        toast({ title: "Failed", description: a.alertFailed, variant: "destructive" });
       },
     },
   });
@@ -76,102 +79,79 @@ export default function Alerts() {
     });
   }
 
-  const criticalCount = alerts?.filter(a => a.severity === "critical").length ?? 0;
-  const warningCount = alerts?.filter(a => a.severity === "warning").length ?? 0;
+  const criticalCount = Array.isArray(alerts) ? alerts.filter(al => al.severity === "critical").length : 0;
+  const warningCount = Array.isArray(alerts) ? alerts.filter(al => al.severity === "warning").length : 0;
+  const severityLabels = { critical: a.critical, warning: a.warning, info: a.info };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Emergency Alerts</h1>
-          <p className="text-muted-foreground">Active system-wide and hospital-specific alerts.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{a.title}</h1>
+          <p className="text-muted-foreground">{a.subtitle}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2" data-testid="button-create-alert">
               <Plus className="h-4 w-4" />
-              New Alert
+              {a.newAlert}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Broadcast Emergency Alert</DialogTitle>
+              <DialogTitle>{a.broadcastAlert}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="form-create-alert">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Alert Title</FormLabel>
+                <FormField control={form.control} name="title" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{a.alertTitle}</FormLabel>
+                    <FormControl><Input placeholder={a.alertTitle} data-testid="input-alert-title" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="severity" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{a.severity}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Input placeholder="Brief alert title" data-testid="input-alert-title" {...field} />
+                        <SelectTrigger data-testid="select-alert-severity"><SelectValue /></SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="severity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Severity</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-alert-severity">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="critical">Critical</SelectItem>
-                          <SelectItem value="warning">Warning</SelectItem>
-                          <SelectItem value="info">Info</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="hospitalId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hospital (Optional — leave blank for system-wide)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-alert-hospital">
-                            <SelectValue placeholder="System-wide alert" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="">System-wide</SelectItem>
-                          {hospitals?.map(h => (
-                            <SelectItem key={h.id} value={String(h.id)}>{h.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message</FormLabel>
+                      <SelectContent>
+                        <SelectItem value="critical">{a.critical}</SelectItem>
+                        <SelectItem value="warning">{a.warning}</SelectItem>
+                        <SelectItem value="info">{a.info}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="hospitalId" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{a.selectHospital}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Textarea placeholder="Detailed alert message..." rows={3} data-testid="textarea-alert-message" {...field} />
+                        <SelectTrigger data-testid="select-alert-hospital"><SelectValue placeholder={a.allHospitals} /></SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value="">{a.allHospitals}</SelectItem>
+                        {hospitals?.map(h => (
+                          <SelectItem key={h.id} value={String(h.id)}>{h.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="message" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{a.message}</FormLabel>
+                    <FormControl><Textarea placeholder={a.message + "..."} rows={3} data-testid="textarea-alert-message" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 <Button type="submit" className="w-full" disabled={createAlert.isPending} data-testid="button-submit-alert">
-                  {createAlert.isPending ? "Broadcasting..." : "Broadcast Alert"}
+                  {createAlert.isPending ? a.broadcasting : a.broadcast}
                 </Button>
               </form>
             </Form>
@@ -179,14 +159,13 @@ export default function Alerts() {
         </Dialog>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-red-500" />
               <div>
-                <p className="text-xs text-red-600">Critical</p>
+                <p className="text-xs text-red-600">{a.critical}</p>
                 <p className="text-2xl font-bold text-red-700" data-testid="count-critical-alerts">{criticalCount}</p>
               </div>
             </div>
@@ -197,7 +176,7 @@ export default function Alerts() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               <div>
-                <p className="text-xs text-amber-600">Warnings</p>
+                <p className="text-xs text-amber-600">{a.warning}</p>
                 <p className="text-2xl font-bold text-amber-700" data-testid="count-warning-alerts">{warningCount}</p>
               </div>
             </div>
@@ -209,14 +188,13 @@ export default function Alerts() {
               <Bell className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-xs text-muted-foreground">Total Active</p>
-                <p className="text-2xl font-bold" data-testid="count-total-alerts">{alerts?.length ?? 0}</p>
+                <p className="text-2xl font-bold" data-testid="count-total-alerts">{Array.isArray(alerts) ? alerts.length : 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Alert List */}
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20 w-full" /></CardContent></Card>)}
@@ -224,7 +202,7 @@ export default function Alerts() {
       ) : !Array.isArray(alerts) || alerts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No active alerts at this time.</p>
+          <p className="text-muted-foreground">{a.noAlerts}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -243,17 +221,11 @@ export default function Alerts() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold" data-testid={`text-alert-title-${alert.id}`}>{alert.title}</span>
-                          <SeverityBadge severity={alert.severity} />
-                          {hospital && (
-                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{hospital.name}</span>
-                          )}
-                          {!alert.hospitalId && (
-                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">System-wide</span>
-                          )}
+                          <SeverityBadge severity={alert.severity} labels={severityLabels} />
+                          {hospital && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{hospital.name}</span>}
+                          {!alert.hospitalId && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{a.allHospitals}</span>}
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {format(new Date(alert.createdAt), "dd MMM, hh:mm a")}
-                        </span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(alert.createdAt), "dd MMM, hh:mm a")}</span>
                       </div>
                       <p className="text-sm text-muted-foreground" data-testid={`text-alert-message-${alert.id}`}>{alert.message}</p>
                     </div>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, ArrowLeft, Plus, X, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const COMMON_SYMPTOMS = [
   "fever", "cough", "headache", "fatigue", "nausea", "vomiting",
@@ -29,17 +30,19 @@ export default function SymptomChecker() {
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useI18n();
+  const s = t.symptomChecker;
 
-  const toggleSymptom = (s: string) => {
+  const toggleSymptom = (sym: string) => {
     setSelectedSymptoms((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+      prev.includes(sym) ? prev.filter((x) => x !== sym) : [...prev, sym]
     );
     setResult(null);
     setError(null);
   };
 
   const handlePredict = async () => {
-    if (selectedSymptoms.length === 0) return;
+    if (selectedSymptoms.length === 0) { setError(s.selectAtLeast); return; }
     setLoading(true);
     setResult(null);
     setError(null);
@@ -59,8 +62,8 @@ export default function SymptomChecker() {
     }
   };
 
-  const formatSymptomLabel = (s: string) =>
-    s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const formatSymptomLabel = (sym: string) =>
+    sym.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -71,37 +74,37 @@ export default function SymptomChecker() {
         <div>
           <div className="flex items-center gap-2">
             <Brain className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-bold">Symptom Checker</h1>
+            <h1 className="text-xl font-bold">{s.title}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Select your symptoms to get a disease prediction</p>
+          <p className="text-sm text-muted-foreground">{s.subtitle}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Select Symptoms</CardTitle>
+          <CardTitle className="text-base">{s.selectSymptoms}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {COMMON_SYMPTOMS.map((s) => (
+            {COMMON_SYMPTOMS.map((sym) => (
               <button
-                key={s}
-                onClick={() => toggleSymptom(s)}
+                key={sym}
+                onClick={() => toggleSymptom(sym)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                  selectedSymptoms.includes(s)
+                  selectedSymptoms.includes(sym)
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-600"
                 }`}
               >
-                {selectedSymptoms.includes(s) ? (
+                {selectedSymptoms.includes(sym) ? (
                   <span className="flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
-                    {formatSymptomLabel(s)}
+                    {formatSymptomLabel(sym)}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1">
                     <Plus className="h-3 w-3" />
-                    {formatSymptomLabel(s)}
+                    {formatSymptomLabel(sym)}
                   </span>
                 )}
               </button>
@@ -114,21 +117,17 @@ export default function SymptomChecker() {
                 Selected: {selectedSymptoms.length} symptom(s)
               </p>
               <div className="flex flex-wrap gap-1">
-                {selectedSymptoms.map((s) => (
-                  <Badge key={s} variant="secondary" className="cursor-pointer" onClick={() => toggleSymptom(s)}>
-                    {formatSymptomLabel(s)} <X className="h-2.5 w-2.5 ml-1" />
+                {selectedSymptoms.map((sym) => (
+                  <Badge key={sym} variant="secondary" className="cursor-pointer" onClick={() => toggleSymptom(sym)}>
+                    {formatSymptomLabel(sym)} <X className="h-2.5 w-2.5 ml-1" />
                   </Badge>
                 ))}
               </div>
             </div>
           )}
 
-          <Button
-            className="mt-4 w-full"
-            onClick={handlePredict}
-            disabled={selectedSymptoms.length === 0 || loading}
-          >
-            {loading ? "Analyzing..." : "Predict Disease"}
+          <Button className="mt-4 w-full" onClick={handlePredict} disabled={selectedSymptoms.length === 0 || loading}>
+            {loading ? s.predicting : s.predict}
           </Button>
         </CardContent>
       </Card>
@@ -148,19 +147,19 @@ export default function SymptomChecker() {
         <div className="space-y-4">
           <Card className="border-blue-200 bg-blue-50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base text-blue-800">Primary Prediction</CardTitle>
+              <CardTitle className="text-base text-blue-800">{s.primaryPrediction}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-2xl font-bold text-blue-900">{result.predicted_disease}</p>
-                  <p className="text-sm text-blue-700">Confidence: {result.confidence}%</p>
+                  <p className="text-sm text-blue-700">{s.confidence}: {result.confidence}%</p>
                 </div>
                 <Badge className="bg-blue-600">{result.confidence}%</Badge>
               </div>
               <Progress value={result.confidence} className="h-2" />
               <div className="flex items-center gap-2 pt-1">
-                <span className="text-sm text-blue-700">Recommended Specialist:</span>
+                <span className="text-sm text-blue-700">{t.specialist.recommended}:</span>
                 <Badge variant="outline" className="border-blue-400 text-blue-700">{result.recommended_specialist}</Badge>
               </div>
             </CardContent>
@@ -168,7 +167,7 @@ export default function SymptomChecker() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">All Predictions</CardTitle>
+              <CardTitle className="text-base">{s.allPredictions}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {result.top_predictions.map((p, i) => (
@@ -185,10 +184,10 @@ export default function SymptomChecker() {
 
           <div className="flex gap-3">
             <Link href={`/ai/home-care?disease=${encodeURIComponent(result.predicted_disease)}`}>
-              <Button variant="outline" className="flex-1">View Home Care Guidance</Button>
+              <Button variant="outline" className="flex-1">{t.homeCare.getGuidance}</Button>
             </Link>
             <Link href={`/ai/specialist?disease=${encodeURIComponent(result.predicted_disease)}`}>
-              <Button variant="outline" className="flex-1">Find Specialist</Button>
+              <Button variant="outline" className="flex-1">{t.specialist.find}</Button>
             </Link>
           </div>
 

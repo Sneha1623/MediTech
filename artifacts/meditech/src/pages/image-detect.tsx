@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScanLine, ArrowLeft, Upload, ImageIcon, AlertTriangle } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface DetectionResult {
   condition: string;
@@ -31,6 +32,8 @@ export default function ImageDetect() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
+  const d = t.imageDetect;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,10 +54,7 @@ export default function ImageDetect() {
     try {
       const formData = new FormData();
       formData.append("image", imageFile);
-      const res = await fetch("/ai-api/image-detect", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch("/ai-api/image-detect", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Detection failed");
       setResult(data);
@@ -76,15 +76,15 @@ export default function ImageDetect() {
         <div>
           <div className="flex items-center gap-2">
             <ScanLine className="h-6 w-6 text-purple-600" />
-            <h1 className="text-xl font-bold">Skin & Wound Detection</h1>
+            <h1 className="text-xl font-bold">{d.title}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Upload an image to detect skin or wound conditions</p>
+          <p className="text-sm text-muted-foreground">{d.subtitle}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Upload Image</CardTitle>
+          <CardTitle className="text-base">{d.uploadPrompt}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div
@@ -92,43 +92,25 @@ export default function ImageDetect() {
             onClick={() => fileInputRef.current?.click()}
           >
             {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Uploaded"
-                className="max-h-48 mx-auto rounded-lg object-contain"
-              />
+              <img src={imagePreview} alt="Uploaded" className="max-h-48 mx-auto rounded-lg object-contain" />
             ) : (
               <div className="space-y-2">
                 <ImageIcon className="h-12 w-12 text-gray-400 mx-auto" />
-                <p className="text-sm text-gray-500">Click to upload an image</p>
+                <p className="text-sm text-gray-500">{d.uploadPrompt}</p>
                 <p className="text-xs text-gray-400">PNG, JPG, JPEG up to 10MB</p>
               </div>
             )}
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => fileInputRef.current?.click()}
-            >
+            <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4 mr-2" />
-              {imageFile ? "Change Image" : "Select Image"}
+              {imageFile ? d.uploadHint : d.uploadPrompt}
             </Button>
-            <Button
-              className="flex-1"
-              onClick={handleDetect}
-              disabled={!imageFile || loading}
-            >
-              {loading ? "Analyzing..." : "Detect Condition"}
+            <Button className="flex-1" onClick={handleDetect} disabled={!imageFile || loading}>
+              {loading ? d.detecting : d.detect}
             </Button>
           </div>
         </CardContent>
@@ -158,7 +140,7 @@ export default function ImageDetect() {
               <p className="text-sm text-muted-foreground">{result.description}</p>
               <Progress value={result.confidence} className="h-2" />
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Recommended:</span>
+                <span className="text-sm text-muted-foreground">{t.specialist.recommended}:</span>
                 <Badge variant="outline">{result.recommended_specialist}</Badge>
               </div>
             </CardContent>
@@ -166,7 +148,7 @@ export default function ImageDetect() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">All Probabilities</CardTitle>
+              <CardTitle className="text-base">{d.probabilities}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2.5">
               {Object.entries(result.probabilities)
@@ -185,10 +167,10 @@ export default function ImageDetect() {
 
           <div className="flex gap-3">
             <Link href="/ai/home-care">
-              <Button variant="outline">View Home Care</Button>
+              <Button variant="outline">{t.homeCare.getGuidance}</Button>
             </Link>
             <Link href={`/ai/specialist?condition=${encodeURIComponent(result.condition)}`}>
-              <Button variant="outline">Find Specialist</Button>
+              <Button variant="outline">{t.specialist.find}</Button>
             </Link>
           </div>
 

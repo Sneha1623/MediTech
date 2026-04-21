@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileSearch, ArrowLeft, Upload, FileText, Pill, AlertTriangle, Info } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface ScanResult {
   extracted_text: string;
@@ -20,6 +21,8 @@ export default function PrescriptionScanner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
+  const p = t.prescription;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -40,10 +43,7 @@ export default function PrescriptionScanner() {
     try {
       const formData = new FormData();
       formData.append("image", imageFile);
-      const res = await fetch("/ai-api/scan-prescription", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch("/ai-api/scan-prescription", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Scan failed");
       setResult(data);
@@ -63,9 +63,9 @@ export default function PrescriptionScanner() {
         <div>
           <div className="flex items-center gap-2">
             <FileSearch className="h-6 w-6 text-orange-600" />
-            <h1 className="text-xl font-bold">Prescription Scanner</h1>
+            <h1 className="text-xl font-bold">{p.title}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Upload a prescription to extract text and detect medicines</p>
+          <p className="text-sm text-muted-foreground">{p.subtitle}</p>
         </div>
       </div>
 
@@ -73,17 +73,14 @@ export default function PrescriptionScanner() {
         <CardContent className="pt-4">
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-blue-700">
-              Upload a clear, well-lit photo of a prescription. Handwritten or printed prescriptions both work.
-              OCR accuracy depends on image quality.
-            </p>
+            <p className="text-sm text-blue-700">{p.uploadPrompt}. {p.uploadHint}.</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Upload Prescription</CardTitle>
+          <CardTitle className="text-base">{p.uploadPrompt}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div
@@ -91,43 +88,29 @@ export default function PrescriptionScanner() {
             onClick={() => fileInputRef.current?.click()}
           >
             {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Prescription"
-                className="max-h-64 mx-auto rounded-lg object-contain"
-              />
+              <img src={imagePreview} alt="Prescription" className="max-h-64 mx-auto rounded-lg object-contain" />
             ) : (
               <div className="space-y-2">
                 <FileText className="h-12 w-12 text-gray-400 mx-auto" />
-                <p className="text-sm text-gray-500">Click to upload prescription image</p>
-                <p className="text-xs text-gray-400">PNG, JPG, JPEG — clear & readable preferred</p>
+                <p className="text-sm text-gray-500">{p.uploadPrompt}</p>
+                <p className="text-xs text-gray-400">PNG, JPG, JPEG</p>
               </div>
             )}
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => fileInputRef.current?.click()}
-            >
+            <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4 mr-2" />
-              {imageFile ? "Change Image" : "Select Image"}
+              {imageFile ? p.uploadHint : p.uploadPrompt}
             </Button>
             <Button
               className="flex-1 bg-orange-600 hover:bg-orange-700"
               onClick={handleScan}
               disabled={!imageFile || loading}
             >
-              {loading ? "Scanning..." : "Scan Prescription"}
+              {loading ? p.scanning : p.scan}
             </Button>
           </div>
         </CardContent>
@@ -151,9 +134,7 @@ export default function PrescriptionScanner() {
               <CardContent className="pt-4">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 text-yellow-700 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-yellow-800">
-                    OCR engine (Tesseract) is not installed in this environment. Install it to enable full text extraction.
-                  </p>
+                  <p className="text-sm text-yellow-800">OCR engine not available in this environment.</p>
                 </div>
               </CardContent>
             </Card>
@@ -165,7 +146,7 @@ export default function PrescriptionScanner() {
                 <div className="flex items-center gap-2">
                   <Pill className="h-4 w-4 text-orange-600" />
                   <CardTitle className="text-base text-orange-800">
-                    Detected Medicines ({result.medicines_count})
+                    {p.detectedMedicines} ({result.medicines_count})
                   </CardTitle>
                 </div>
               </CardHeader>
@@ -185,9 +166,7 @@ export default function PrescriptionScanner() {
           {result.detected_medicines.length === 0 && result.ocr_available && (
             <Card className="border-gray-200">
               <CardContent className="pt-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  No known medicines detected in the extracted text.
-                </p>
+                <p className="text-sm text-muted-foreground text-center">No known medicines detected.</p>
               </CardContent>
             </Card>
           )}
@@ -196,7 +175,7 @@ export default function PrescriptionScanner() {
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-gray-600" />
-                <CardTitle className="text-base">Extracted Text</CardTitle>
+                <CardTitle className="text-base">{p.extractedText}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>

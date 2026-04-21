@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { UserCheck, ArrowLeft, Search, AlertTriangle, Building2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const QUICK_CONDITIONS = [
   { label: "Skin / Acne", value: "skin" },
@@ -33,6 +34,8 @@ export default function Specialist() {
   const params = new URLSearchParams(search);
   const diseaseFromQuery = params.get("disease") || "";
   const conditionFromQuery = params.get("condition") || "";
+  const { t } = useI18n();
+  const s = t.specialist;
 
   const [query, setQuery] = useState(diseaseFromQuery || conditionFromQuery);
   const [result, setResult] = useState<SpecialistResult | null>(null);
@@ -78,27 +81,27 @@ export default function Specialist() {
         <div>
           <div className="flex items-center gap-2">
             <UserCheck className="h-6 w-6 text-teal-600" />
-            <h1 className="text-xl font-bold">Specialist Finder</h1>
+            <h1 className="text-xl font-bold">{s.title}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">Find the right doctor specialist for your condition</p>
+          <p className="text-sm text-muted-foreground">{s.subtitle}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Search by Disease or Condition</CardTitle>
+          <CardTitle className="text-base">{s.searchDisease}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <Input
-              placeholder="e.g. diabetes, skin rash, fracture..."
+              placeholder={s.searchDisease}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchSpecialist(query)}
             />
             <Button onClick={() => fetchSpecialist(query)} disabled={loading || !query.trim()}>
               <Search className="h-4 w-4 mr-2" />
-              {loading ? "Searching..." : "Find"}
+              {loading ? s.finding : s.find}
             </Button>
           </div>
 
@@ -134,7 +137,7 @@ export default function Specialist() {
         <div className="space-y-4">
           <Card className="border-teal-200 bg-teal-50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base text-teal-800">Recommended Specialist</CardTitle>
+              <CardTitle className="text-base text-teal-800">{s.recommended}:</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
@@ -162,7 +165,7 @@ export default function Specialist() {
                   </p>
                   <Link href="/hospitals">
                     <Button variant="outline" size="sm" className="mt-2">
-                      Browse Hospitals
+                      {t.nav.hospitals}
                     </Button>
                   </Link>
                 </div>

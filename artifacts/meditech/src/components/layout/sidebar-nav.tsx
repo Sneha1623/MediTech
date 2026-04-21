@@ -17,29 +17,31 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-const mainNavItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/hospitals", label: "Hospitals", icon: Building2 },
-  { href: "/ambulances", label: "Ambulances", icon: Ambulance },
-  { href: "/book", label: "Book Ambulance", icon: PhoneCall },
-  { href: "/bookings", label: "Bookings", icon: ClipboardList },
-  { href: "/analytics", label: "Analytics", icon: LineChart },
-  { href: "/alerts", label: "Alerts", icon: Bell },
-];
-
-const aiNavItems = [
-  { href: "/ai", label: "AI Tools Hub", icon: Stethoscope },
-  { href: "/ai/chatbot", label: "Health Chatbot 🎤", icon: MessageCircle },
-  { href: "/ai/symptom-checker", label: "Symptom Checker", icon: Brain },
-  { href: "/ai/image-detect", label: "Skin & Wound AI", icon: ScanLine },
-  { href: "/ai/home-care", label: "Home Care", icon: Heart },
-  { href: "/ai/prescription-scanner", label: "Prescription OCR", icon: FileSearch },
-  { href: "/ai/specialist", label: "Find Specialist", icon: UserCheck },
-];
+import { useI18n } from "@/lib/i18n";
 
 export function SidebarNav() {
   const [location] = useLocation();
+  const { t } = useI18n();
+
+  const mainNavItems = [
+    { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
+    { href: "/hospitals", label: t.nav.hospitals, icon: Building2 },
+    { href: "/ambulances", label: t.nav.ambulances, icon: Ambulance },
+    { href: "/book", label: t.nav.bookAmbulance, icon: PhoneCall },
+    { href: "/bookings", label: t.nav.bookings, icon: ClipboardList },
+    { href: "/analytics", label: t.nav.analytics, icon: LineChart },
+    { href: "/alerts", label: t.nav.alerts, icon: Bell },
+  ];
+
+  const aiNavItems = [
+    { href: "/ai", label: t.nav.aiToolsHub, icon: Stethoscope },
+    { href: "/ai/chatbot", label: t.nav.healthChatbot, icon: MessageCircle },
+    { href: "/ai/symptom-checker", label: t.nav.symptomChecker, icon: Brain },
+    { href: "/ai/image-detect", label: t.nav.skinWoundAI, icon: ScanLine },
+    { href: "/ai/home-care", label: t.nav.homeCare, icon: Heart },
+    { href: "/ai/prescription-scanner", label: t.nav.prescriptionOCR, icon: FileSearch },
+    { href: "/ai/specialist", label: t.nav.findSpecialist, icon: UserCheck },
+  ];
 
   const isActive = (href: string) =>
     href === "/ai"
@@ -66,7 +68,7 @@ export function SidebarNav() {
 
       <div className="pt-3 pb-1">
         <div className="flex items-center gap-2 px-3 mb-1">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Health Tools</span>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.nav.aiHealthTools}</span>
           <Badge variant="secondary" className="text-[10px] py-0 px-1.5 h-4">Beta</Badge>
         </div>
       </div>

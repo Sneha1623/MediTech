@@ -12,9 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Ambulance, CheckCircle2, Clock, AlertTriangle, PhoneCall } from "lucide-react";
+import { Ambulance, CheckCircle2, Clock, PhoneCall } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { useI18n } from "@/lib/i18n";
 
 const bookingSchema = z.object({
   patientName: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,7 +34,6 @@ function EmergencyBadge({ level }: { level: string }) {
     moderate: { label: "Moderate", className: "bg-amber-100 text-amber-700 border-amber-200" },
     low: { label: "Low", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   }[level] ?? { label: level, className: "" };
-
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.className}`}>
       {config.label}
@@ -45,6 +45,8 @@ export default function Book() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [confirmedBooking, setConfirmedBooking] = useState<{ id: number; status: string; emergency: string; hospital: string } | null>(null);
+  const { t } = useI18n();
+  const b = t.book;
 
   const { data: hospitals, isLoading: hospitalsLoading } = useListHospitals(
     {},
@@ -55,31 +57,19 @@ export default function Book() {
     mutation: {
       onSuccess: (booking) => {
         const hospital = hospitals?.find(h => h.id === booking.destinationHospitalId);
-        setConfirmedBooking({
-          id: booking.id,
-          status: booking.status,
-          emergency: booking.emergency,
-          hospital: hospital?.name ?? "Selected Hospital",
-        });
+        setConfirmedBooking({ id: booking.id, status: booking.status, emergency: booking.emergency, hospital: hospital?.name ?? "Selected Hospital" });
         queryClient.invalidateQueries({ queryKey: ["listBookings"] });
         form.reset();
       },
       onError: () => {
-        toast({ title: "Booking Failed", description: "Unable to create booking. Please try again.", variant: "destructive" });
+        toast({ title: b.bookingFailed, description: b.bookingFailedDesc, variant: "destructive" });
       },
     },
   });
 
   const form = useForm<BookingForm>({
     resolver: zodResolver(bookingSchema),
-    defaultValues: {
-      patientName: "",
-      patientPhone: "",
-      pickupAddress: "",
-      destinationHospitalId: "",
-      emergency: "moderate",
-      notes: "",
-    },
+    defaultValues: { patientName: "", patientPhone: "", pickupAddress: "", destinationHospitalId: "", emergency: "moderate", notes: "" },
   });
 
   function onSubmit(values: BookingForm) {
@@ -100,57 +90,54 @@ export default function Book() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Book Ambulance</h1>
-        <p className="text-muted-foreground">Request emergency medical transport — one-click dispatch to the nearest available ambulance.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{b.title}</h1>
+        <p className="text-muted-foreground">{b.subtitle}</p>
       </div>
 
-      {/* Emergency Notice */}
       <Alert className="border-red-200 bg-red-50">
         <PhoneCall className="h-4 w-4 text-red-600" />
-        <AlertTitle className="text-red-800">Life-threatening emergency?</AlertTitle>
+        <AlertTitle className="text-red-800">{b.lifeThreatening}</AlertTitle>
         <AlertDescription className="text-red-700">
-          For immediate life-threatening emergencies, call{" "}
-          <a href="tel:112" className="font-bold underline">112</a> directly. This form is for pre-arranged medical transport.
+          {b.lifeThreateningDesc}{" "}
+          <a href="tel:112" className="font-bold underline">112</a>{" "}
+          {b.lifeThreateningDesc2}
         </AlertDescription>
       </Alert>
 
-      {/* Confirmation Card */}
       {confirmedBooking && (
         <Card className="border-emerald-200 bg-emerald-50" data-testid="card-booking-confirmed">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <CheckCircle2 className="h-8 w-8 text-emerald-500 shrink-0 mt-0.5" />
               <div className="space-y-2">
-                <h3 className="font-semibold text-emerald-900 text-lg">Booking Confirmed!</h3>
-                <p className="text-emerald-700 text-sm">Your ambulance has been dispatched.</p>
+                <h3 className="font-semibold text-emerald-900 text-lg">{b.bookingConfirmed}</h3>
+                <p className="text-emerald-700 text-sm">{b.ambulanceDispatched}</p>
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   <div className="bg-white rounded-lg p-3 border border-emerald-200">
-                    <p className="text-xs text-muted-foreground">Booking ID</p>
+                    <p className="text-xs text-muted-foreground">{b.bookingID}</p>
                     <p className="font-bold text-lg" data-testid="text-booking-id">#{confirmedBooking.id}</p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-emerald-200">
-                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className="text-xs text-muted-foreground">{b.status}</p>
                     <p className="font-bold capitalize">{confirmedBooking.status}</p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-emerald-200">
-                    <p className="text-xs text-muted-foreground">Emergency Level</p>
+                    <p className="text-xs text-muted-foreground">{b.emergencyLevel}</p>
                     <EmergencyBadge level={confirmedBooking.emergency} />
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-emerald-200">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">Est. Arrival</p>
+                      <p className="text-xs text-muted-foreground">{b.estArrival}</p>
                     </div>
                     <p className="font-bold text-sm" data-testid="text-eta">{etaMap[confirmedBooking.emergency as keyof typeof etaMap]}</p>
                   </div>
                 </div>
-                <p className="text-xs text-emerald-700 mt-2">Destination: {confirmedBooking.hospital}</p>
+                <p className="text-xs text-emerald-700 mt-2">{b.destination}: {confirmedBooking.hospital}</p>
                 <div className="flex gap-2 mt-3">
-                  <Button size="sm" variant="outline" onClick={() => setConfirmedBooking(null)} data-testid="button-new-booking">
-                    Book Another
-                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setConfirmedBooking(null)} data-testid="button-new-booking">{b.bookAnother}</Button>
                   <Button size="sm" asChild>
-                    <Link href="/bookings" data-testid="link-view-bookings">View All Bookings</Link>
+                    <Link href="/bookings" data-testid="link-view-bookings">{b.viewAllBookings}</Link>
                   </Button>
                 </div>
               </div>
@@ -159,131 +146,91 @@ export default function Book() {
         </Card>
       )}
 
-      {/* Booking Form */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Ambulance className="h-5 w-5 text-primary" />
-            <CardTitle>Patient Information</CardTitle>
+            <CardTitle>{b.patientInformation}</CardTitle>
           </div>
-          <CardDescription>Fill in the details to dispatch the nearest available ambulance.</CardDescription>
+          <CardDescription>{b.patientInfoDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" data-testid="form-booking">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="patientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Patient Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Full name" data-testid="input-patient-name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="patientPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="+91 XXXXX XXXXX" data-testid="input-patient-phone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormField control={form.control} name="patientName" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{b.patientName}</FormLabel>
+                    <FormControl><Input placeholder={b.patientNamePlaceholder} data-testid="input-patient-name" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="patientPhone" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{b.phoneNumber}</FormLabel>
+                    <FormControl><Input placeholder="+91 XXXXX XXXXX" data-testid="input-patient-phone" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
-              <FormField
-                control={form.control}
-                name="pickupAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pickup Address</FormLabel>
+              <FormField control={form.control} name="pickupAddress" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{b.pickupAddress}</FormLabel>
+                  <FormControl><Input placeholder={b.pickupPlaceholder} data-testid="input-pickup-address" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="destinationHospitalId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{b.destinationHospital}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={hospitalsLoading}>
                     <FormControl>
-                      <Input placeholder="Full address including landmark" data-testid="input-pickup-address" {...field} />
+                      <SelectTrigger data-testid="select-destination-hospital">
+                        <SelectValue placeholder={hospitalsLoading ? b.loadingHospitals : b.selectHospital} />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="destinationHospitalId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Destination Hospital</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={hospitalsLoading}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-destination-hospital">
-                          <SelectValue placeholder={hospitalsLoading ? "Loading hospitals..." : "Select hospital"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {hospitals?.map(h => (
-                          <SelectItem key={h.id} value={String(h.id)}>{h.name} — {h.city}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="emergency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Emergency Level</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-emergency-level">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="critical">Critical — Immediate life threat</SelectItem>
-                        <SelectItem value="moderate">Moderate — Urgent but stable</SelectItem>
-                        <SelectItem value="low">Low — Non-urgent transport</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Additional Notes (Optional)</FormLabel>
+                    <SelectContent>
+                      {hospitals?.map(h => (
+                        <SelectItem key={h.id} value={String(h.id)}>{h.name} — {h.city}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="emergency" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{b.emergencyLevel}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <Textarea placeholder="Medical condition, special equipment needed, etc." rows={3} data-testid="textarea-notes" {...field} />
+                      <SelectTrigger data-testid="select-emergency-level"><SelectValue /></SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full h-12 text-base font-semibold"
-                disabled={createBooking.isPending}
-                data-testid="button-submit-booking"
-              >
+                    <SelectContent>
+                      <SelectItem value="critical">{b.criticalLabel}</SelectItem>
+                      <SelectItem value="moderate">{b.moderateLabel}</SelectItem>
+                      <SelectItem value="low">{b.lowLabel}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="notes" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{b.additionalNotes}</FormLabel>
+                  <FormControl><Textarea placeholder={b.notesPlaceholder} rows={3} data-testid="textarea-notes" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={createBooking.isPending} data-testid="button-submit-booking">
                 {createBooking.isPending ? (
                   <span className="flex items-center gap-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent" />
-                    Dispatching...
+                    {b.dispatching}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Ambulance className="h-5 w-5" />
-                    Dispatch Ambulance
+                    {b.dispatchAmbulance}
                   </span>
                 )}
               </Button>

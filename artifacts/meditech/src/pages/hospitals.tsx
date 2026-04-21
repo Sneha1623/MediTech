@@ -7,17 +7,20 @@ import { useState } from "react";
 import { Search, MapPin, Building2, Phone } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/lib/i18n";
 
 export default function Hospitals() {
   const [searchTerm, setSearchTerm] = useState("");
-  
+  const { t } = useI18n();
+  const h = t.hospitals;
+
   const { data: hospitals, isLoading } = useListHospitals(
     {},
     { query: { queryKey: getListHospitalsQueryKey({}) } }
   );
 
-  const filteredHospitals = hospitals?.filter(h => 
-    h.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredHospitals = hospitals?.filter(h =>
+    h.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     h.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -25,14 +28,14 @@ export default function Hospitals() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Hospitals Directory</h1>
-          <p className="text-muted-foreground">Manage and monitor hospital network status.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{h.title}</h1>
+          <p className="text-muted-foreground">{h.subtitle}</p>
         </div>
         <div className="relative w-full md:w-72">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search hospitals..."
+            placeholder={h.searchPlaceholder}
             className="pl-8 bg-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -55,16 +58,14 @@ export default function Hospitals() {
           ))
         ) : filteredHospitals?.length === 0 ? (
           <div className="col-span-full py-12 text-center text-muted-foreground">
-            No hospitals found matching "{searchTerm}"
+            {h.noResults} "{searchTerm}"
           </div>
         ) : (
           filteredHospitals?.map((hospital) => (
             <Card key={hospital.id} className="flex flex-col">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <Badge variant="outline" className="mb-2 capitalize">
-                    {hospital.type}
-                  </Badge>
+                  <Badge variant="outline" className="mb-2 capitalize">{hospital.type}</Badge>
                   <Badge variant={hospital.status === "active" ? "default" : "secondary"} className={hospital.status === "active" ? "bg-green-500 hover:bg-green-600" : ""}>
                     {hospital.status}
                   </Badge>
@@ -87,7 +88,7 @@ export default function Hospitals() {
                   </div>
                 </div>
                 <Button asChild className="w-full">
-                  <Link href={`/hospitals/${hospital.id}`}>View Details & Resources</Link>
+                  <Link href={`/hospitals/${hospital.id}`}>{h.viewDetails}</Link>
                 </Button>
               </CardContent>
             </Card>
