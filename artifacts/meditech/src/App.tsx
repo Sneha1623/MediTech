@@ -14,6 +14,12 @@ import Book from "@/pages/book";
 import Bookings from "@/pages/bookings";
 import Analytics from "@/pages/analytics";
 import Alerts from "@/pages/alerts";
+import AIHub from "@/pages/ai-hub";
+import SymptomChecker from "@/pages/symptom-checker";
+import ImageDetect from "@/pages/image-detect";
+import HomeCare from "@/pages/home-care";
+import PrescriptionScanner from "@/pages/prescription-scanner";
+import Specialist from "@/pages/specialist";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +35,12 @@ function Router() {
       <Route path="/bookings" component={Bookings} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/alerts" component={Alerts} />
+      <Route path="/ai" component={AIHub} />
+      <Route path="/ai/symptom-checker" component={SymptomChecker} />
+      <Route path="/ai/image-detect" component={ImageDetect} />
+      <Route path="/ai/home-care" component={HomeCare} />
+      <Route path="/ai/prescription-scanner" component={PrescriptionScanner} />
+      <Route path="/ai/specialist" component={Specialist} />
       <Route component={NotFound} />
     </Switch>
   );

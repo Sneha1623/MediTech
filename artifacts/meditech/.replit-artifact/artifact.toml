@@ -29,3 +29,14 @@ to = "/index.html"
 [services.env]
 PORT = "18140"
 BASE_PATH = "/"
+
+[[services]]
+name = "ai-backend"
+paths = [ "/ai-api" ]
+localPort = 5000
+
+[services.development]
+run = "/home/runner/workspace/.pythonlibs/bin/python /home/runner/workspace/artifacts/ai-backend/app.py"
+
+[services.env]
+PORT = "5000"
