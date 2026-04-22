@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "w1ccClljhslA5fkWSOSDG"
+uri = "file://README.md"
+type = "text"
+title = "MediTech — Project README"

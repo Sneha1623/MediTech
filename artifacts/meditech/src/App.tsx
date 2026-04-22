@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/app-layout";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
+import { GlobalAssistant } from "@/components/global-assistant";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
@@ -57,6 +58,7 @@ function App() {
             <Router />
           </AppLayout>
         </WouterRouter>
+        <GlobalAssistant />
         <PwaInstallPrompt />
         <Toaster />
       </TooltipProvider>

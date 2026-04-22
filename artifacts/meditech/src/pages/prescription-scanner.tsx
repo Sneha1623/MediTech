@@ -3,12 +3,20 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileSearch, ArrowLeft, Upload, FileText, Pill, AlertTriangle, Info } from "lucide-react";
+import { FileSearch, ArrowLeft, Upload, FileText, Pill, AlertTriangle, Info, ShieldAlert, BookOpen } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+
+interface MedicineDetail {
+  name: string;
+  category: string;
+  uses: string;
+  precautions: string;
+}
 
 interface ScanResult {
   extracted_text: string;
   detected_medicines: string[];
+  medicine_details: MedicineDetail[];
   medicines_count: number;
   ocr_available: boolean;
   disclaimer: string;
@@ -141,26 +149,52 @@ export default function PrescriptionScanner() {
           )}
 
           {result.detected_medicines.length > 0 && (
-            <Card className="border-orange-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Pill className="h-4 w-4 text-orange-600" />
-                  <CardTitle className="text-base text-orange-800">
-                    {p.detectedMedicines} ({result.medicines_count})
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {result.detected_medicines.map((med) => (
-                    <Badge key={med} className="bg-orange-100 text-orange-800 border-orange-300 text-sm py-1 px-3">
-                      <Pill className="h-3 w-3 mr-1.5" />
-                      {med}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Pill className="h-4 w-4 text-orange-600" />
+                <h3 className="font-semibold text-orange-800">
+                  {p.detectedMedicines} ({result.medicines_count})
+                </h3>
+              </div>
+              {(result.medicine_details && result.medicine_details.length > 0
+                ? result.medicine_details
+                : result.detected_medicines.map((m) => ({ name: m, category: "Medicine", uses: "", precautions: "" }))
+              ).map((med) => (
+                <Card key={med.name} className="border-orange-200">
+                  <CardHeader className="pb-2 pt-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <Pill className="h-4 w-4 text-orange-600 shrink-0" />
+                        <CardTitle className="text-base text-orange-800">{med.name}</CardTitle>
+                      </div>
+                      <Badge className="bg-orange-100 text-orange-700 border-orange-300 text-xs">{med.category}</Badge>
+                    </div>
+                  </CardHeader>
+                  {(med.uses || med.precautions) && (
+                    <CardContent className="pt-0 space-y-2">
+                      {med.uses && (
+                        <div className="flex items-start gap-2 bg-blue-50 rounded-lg p-2.5">
+                          <BookOpen className="h-3.5 w-3.5 text-blue-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-blue-700 mb-0.5">Uses</p>
+                            <p className="text-xs text-blue-800 leading-relaxed">{med.uses}</p>
+                          </div>
+                        </div>
+                      )}
+                      {med.precautions && (
+                        <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-2.5">
+                          <ShieldAlert className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-amber-700 mb-0.5">Precautions</p>
+                            <p className="text-xs text-amber-800 leading-relaxed">{med.precautions}</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
           )}
 
           {result.detected_medicines.length === 0 && result.ocr_available && (

@@ -218,7 +218,7 @@ def scan_prescription():
         except Exception as ocr_err:
             extracted_text = f"[OCR processing failed: {str(ocr_err)}]"
 
-        from ml.guidance_data import KNOWN_MEDICINES
+        from ml.guidance_data import KNOWN_MEDICINES, MEDICINE_INFO
         text_lower = extracted_text.lower()
         detected_medicines = []
         for med in KNOWN_MEDICINES:
@@ -227,9 +227,21 @@ def scan_prescription():
 
         detected_medicines = list(dict.fromkeys(detected_medicines))
 
+        medicine_details = []
+        for med in detected_medicines:
+            key = med.lower()
+            info = MEDICINE_INFO.get(key, {})
+            medicine_details.append({
+                "name": med,
+                "category": info.get("category", "Medicine"),
+                "uses": info.get("uses", "Please consult your doctor or pharmacist for details about this medicine."),
+                "precautions": info.get("precautions", "Always follow your doctor's instructions. Do not self-medicate."),
+            })
+
         return jsonify({
             "extracted_text": extracted_text.strip(),
             "detected_medicines": detected_medicines,
+            "medicine_details": medicine_details,
             "medicines_count": len(detected_medicines),
             "ocr_available": ocr_available,
             "disclaimer": DISCLAIMER,
@@ -401,6 +413,148 @@ def translate():
         })
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# 8. Global AI Assistant (Robot Guide with smart action suggestions)
+# ---------------------------------------------------------------------------
+@app.route("/ai-api/assistant", methods=["POST"])
+def assistant():
+    try:
+        data = request.get_json(force=True)
+        message = (data.get("message") or "").strip()
+        preferred_lang = (data.get("language") or "").strip()
+
+        if not message:
+            return jsonify({"error": "Please send a message"}), 400
+
+        from ml.chatbot_data import detect_language, DISCLAIMER as CHAT_DISCLAIMER
+
+        lang = preferred_lang if preferred_lang in ("en", "hi", "od") else detect_language(message)
+        msg_lower = message.lower()
+
+        GREETINGS_KW = {
+            "en": ["hello", "hi", "hey", "help", "start", "what can you do", "guide me"],
+            "hi": ["नमस्ते", "हैलो", "हाय", "मदद", "शुरू", "क्या कर सकते हो"],
+            "od": ["ନମସ୍କାର", "ହ୍ୟାଲୋ", "ସାହାଯ୍ୟ", "ଶୁରୁ"],
+        }
+        SYMPTOM_KW = ["symptom", "sick", "fever", "pain", "cough", "headache", "feel", "ill", "unwell",
+                      "लक्षण", "बीमार", "बुखार", "दर्द", "खांसी", "अस्वस्थ",
+                      "ଲକ୍ଷଣ", "ଅସୁସ୍ଥ", "ଜ୍ୱର", "ଯନ୍ତ୍ରଣା", "ଦ୍ରଦ"]
+        IMAGE_KW = ["image", "photo", "picture", "upload", "skin", "wound", "rash", "acne",
+                    "फोटो", "त्वचा", "घाव", "चित्र",
+                    "ଫଟୋ", "ଚର୍ମ", "ଘା", "ଛବି"]
+        PRESCRIPTION_KW = ["prescription", "medicine", "tablet", "scan", "ocr", "drug", "pill",
+                           "पर्चा", "दवाई", "टैबलेट", "स्कैन",
+                           "ଔଷଧ", "ପ୍ରେସ୍କ୍ରିପ୍ସନ", "ଟ୍ୟାବ୍ଲେଟ"]
+        DOCTOR_KW = ["doctor", "specialist", "hospital", "find", "appointment", "consult",
+                     "डॉक्टर", "विशेषज्ञ", "अस्पताल", "अपॉइंटमेंट",
+                     "ଡାକ୍ତର", "ବିଶେଷଜ୍ଞ", "ଅସ୍ପତାଳ"]
+        EMERGENCY_KW = ["emergency", "ambulance", "urgent", "accident", "help", "critical", "108",
+                        "आपातकाल", "एम्बुलेंस", "तत्काल", "दुर्घटना",
+                        "ଜରୁରୀ", "ଏମ୍ବୁଲ୍ୟାନ୍ସ", "ଆପ ଦ୍ୱାତ"]
+        HOME_CARE_KW = ["home", "remedy", "home care", "treatment", "care", "remedies",
+                        "घरेलू", "उपचार", "घर",
+                        "ଘରୋଇ", "ଉପଚାର"]
+
+        intent = "greeting"
+        action = None
+        action_url = None
+
+        all_greetings = []
+        for g_list in GREETINGS_KW.values():
+            all_greetings.extend(g_list)
+        if any(kw in msg_lower for kw in all_greetings):
+            intent = "greeting"
+        elif any(kw in msg_lower for kw in EMERGENCY_KW):
+            intent = "emergency"
+            action = {"en": "Book Ambulance", "hi": "एम्बुलेंस बुक करें", "od": "ଏମ୍ବୁଲ୍ୟାନ୍ସ ବୁକ"}[lang]
+            action_url = "/book"
+        elif any(kw in msg_lower for kw in SYMPTOM_KW):
+            intent = "symptom_check"
+            action = {"en": "Check Symptoms", "hi": "लक्षण जांचें", "od": "ଲକ୍ଷଣ ଯାଞ୍ଚ"}[lang]
+            action_url = "/ai/symptom-checker"
+        elif any(kw in msg_lower for kw in PRESCRIPTION_KW):
+            intent = "prescription"
+            action = {"en": "Scan Prescription", "hi": "पर्चा स्कैन करें", "od": "ପ୍ରେସ୍କ୍ରିପ୍ସନ ସ୍କ୍ୟାନ"}[lang]
+            action_url = "/ai/prescription-scanner"
+        elif any(kw in msg_lower for kw in IMAGE_KW):
+            intent = "image_detect"
+            action = {"en": "Upload Image", "hi": "फोटो अपलोड करें", "od": "ଫଟୋ ଅପଲୋଡ"}[lang]
+            action_url = "/ai/image-detect"
+        elif any(kw in msg_lower for kw in DOCTOR_KW):
+            intent = "find_doctor"
+            action = {"en": "Find Specialist", "hi": "विशेषज्ञ खोजें", "od": "ବିଶେଷଜ୍ଞ ଖୋଜ"}[lang]
+            action_url = "/ai/specialist"
+        elif any(kw in msg_lower for kw in HOME_CARE_KW):
+            intent = "home_care"
+            action = {"en": "Home Care Guide", "hi": "घरेलू देखभाल", "od": "ଘରୋଇ ଚିକିତ୍ସା"}[lang]
+            action_url = "/ai/home-care"
+
+        RESPONSES = {
+            "greeting": {
+                "en": "Hello! I'm your MediTech health guide 🤖\n\nI can help you:\n• Check your symptoms\n• Upload a skin or wound photo\n• Scan a prescription\n• Find the right doctor\n• Book an ambulance in emergencies\n\nWhat would you like to do today?",
+                "hi": "नमस्ते! मैं आपका MediTech स्वास्थ्य गाइड हूँ 🤖\n\nमैं आपकी मदद कर सकता हूँ:\n• लक्षण जांच\n• त्वचा या घाव की फोटो अपलोड\n• पर्चा स्कैन\n• सही डॉक्टर खोजें\n• आपातकाल में एम्बुलेंस बुक करें\n\nआज आप क्या करना चाहते हैं?",
+                "od": "ନମସ୍କାର! ମୁଁ ଆପଣଙ୍କ MediTech ସ୍ୱାସ୍ଥ୍ୟ ଗାଇଡ 🤖\n\nମୁଁ ଆପଣଙ୍କୁ ସାହାଯ୍ୟ କରିପାରିବି:\n• ଲକ୍ଷଣ ଯାଞ୍ଚ\n• ଚର୍ମ ବା ଘା ଫଟୋ\n• ପ୍ରେସ୍କ୍ରିପ୍ସନ ସ୍କ୍ୟାନ\n• ଡାକ୍ତର ଖୋଜ\n• ଜରୁରୀ ଏମ୍ବୁଲ୍ୟାନ୍ସ\n\nଆଜି ଆପଣ କ'ଣ କରିବାକୁ ଚାହୁଁଛନ୍ତି?",
+            },
+            "symptom_check": {
+                "en": "I see you may have some symptoms. Let me guide you to the Symptom Checker.\n\nPlease click the button below to select your symptoms and get an AI-based prediction. It's quick and simple!",
+                "hi": "लगता है आपको कुछ लक्षण हैं। मैं आपको Symptom Checker तक ले जाता हूँ।\n\nनीचे दिए बटन को दबाएं, अपने लक्षण चुनें और AI से भविष्यवाणी पाएं। यह आसान है!",
+                "od": "ଆପଣଙ୍କ କିଛି ଲକ୍ଷଣ ଥିବା ଦେଖୁଛି। ଆପଣଙ୍କୁ Symptom Checker ପାଖୁ ନେଇ ଯାଏ।\n\nନିମ୍ନ ବଟନ ଦବାଇ ଆପଣଙ୍କ ଲକ୍ଷଣ ଚୟନ କରନ୍ତୁ।",
+            },
+            "image_detect": {
+                "en": "I can help analyze a skin or wound photo for you.\n\nPlease click below to go to the Image Analysis tool. Upload a clear photo of the affected area and our AI will identify the condition.",
+                "hi": "मैं आपकी त्वचा या घाव की फोटो का विश्लेषण कर सकता हूँ।\n\nनीचे दिए बटन से Image Analysis tool पर जाएं। प्रभावित हिस्से की स्पष्ट फोटो अपलोड करें।",
+                "od": "ମୁଁ ଆପଣଙ୍କ ଚର୍ମ ବା ଘା ଫଟୋ ବିଶ୍ଲେଷଣ ସାହାଯ୍ୟ କରିବି।\n\nନିମ୍ନ ବଟନ ଦ୍ୱାରା Image Analysis ଟୁଲ ଦେଖନ୍ତୁ।",
+            },
+            "prescription": {
+                "en": "I can scan your prescription and identify medicines.\n\nPlease click below to go to the Prescription Scanner. Take a clear photo of your prescription and upload it.",
+                "hi": "मैं आपका prescription scan कर के दवाइयां पहचान सकता हूँ।\n\nनीचे दिए बटन से Prescription Scanner पर जाएं। अपने पर्चे की साफ फोटो खींचकर अपलोड करें।",
+                "od": "ମୁଁ ଆପଣଙ୍କ ପ୍ରେସ୍କ୍ରିପ୍ସନ ସ୍କ୍ୟାନ କରି ଔଷଧ ଚିହ୍ନଟ ସାହାଯ୍ୟ କରିବି।\n\nନିମ୍ନ ବଟନ ଦ୍ୱାରା Prescription Scanner ଦେଖନ୍ତୁ।",
+            },
+            "find_doctor": {
+                "en": "Let me help you find the right specialist.\n\nClick below to use the Specialist Finder. Enter your condition and I will suggest the right type of doctor for you.",
+                "hi": "मैं आपको सही विशेषज्ञ खोजने में मदद करूंगा।\n\nनीचे Specialist Finder पर जाएं। अपनी बीमारी डालें और सही डॉक्टर खोजें।",
+                "od": "ମୁଁ ଆପଣଙ୍କ ଠିକ ବିଶେଷଜ୍ଞ ଖୋଜିବାରେ ସାହାଯ୍ୟ କରିବି।\n\nନିମ୍ନ Specialist Finder ରେ ଆପଣଙ୍କ ରୋଗ ଦଖଲ କରନ୍ତୁ।",
+            },
+            "home_care": {
+                "en": "I can show you home remedies and care guidance.\n\nClick below to go to the Home Care section. Search for your condition to get home remedies and doctor visit advice.",
+                "hi": "मैं आपको घरेलू उपचार और देखभाल की जानकारी दे सकता हूँ।\n\nHome Care section में जाएं। अपनी बीमारी खोजें और घरेलू उपचार पाएं।",
+                "od": "ମୁଁ ଆପଣଙ୍କ ଘରୋଇ ଚିକିତ୍ସା ଓ ଯତ୍ନ ଗାଇଡ ଦେଖାଇ ପାରିବି।\n\nHome Care ବିଭାଗ ଦେଖନ୍ତୁ।",
+            },
+            "emergency": {
+                "en": "🚨 EMERGENCY DETECTED!\n\nPlease call 108 for an ambulance immediately.\n\nOr click below to book an ambulance through this app right now. Stay calm and stay on the line.",
+                "hi": "🚨 आपातकाल!\n\nकृपया तुरंत 108 पर एम्बुलेंस के लिए कॉल करें।\n\nया नीचे दिए बटन से अभी एम्बुलेंस बुक करें। शांत रहें।",
+                "od": "🚨 ଜରୁରୀ!\n\nଦୟାକରି ତୁରନ୍ତ 108 ଡ଼ାକନ୍ତୁ।\n\nଅଥବା ନିମ୍ନ ବଟନ ଦ୍ୱାରା ଏମ୍ବୁଲ୍ୟାନ୍ସ ବୁକ କରନ୍ତୁ।",
+            },
+        }
+
+        response_text = RESPONSES.get(intent, RESPONSES["greeting"])[lang]
+
+        if intent not in ("greeting", "emergency"):
+            response_text += "\n\n— " + CHAT_DISCLAIMER[lang]
+
+        quick_actions = [
+            {"label": {"en": "Check Symptoms", "hi": "लक्षण जांचें", "od": "ଲକ୍ଷଣ ଯାଞ୍ଚ"}[lang], "url": "/ai/symptom-checker"},
+            {"label": {"en": "Upload Image", "hi": "फोटो अपलोड करें", "od": "ଫଟୋ ଅପଲୋଡ"}[lang], "url": "/ai/image-detect"},
+            {"label": {"en": "Scan Prescription", "hi": "पर्चा स्कैन करें", "od": "ପ୍ରେସ୍କ୍ରିପ୍ସନ ସ୍କ୍ୟାନ"}[lang], "url": "/ai/prescription-scanner"},
+            {"label": {"en": "Find Doctor", "hi": "डॉक्टर खोजें", "od": "ଡାକ୍ତର ଖୋଜ"}[lang], "url": "/ai/specialist"},
+            {"label": {"en": "Emergency Help", "hi": "आपातकालीन सहायता", "od": "ଜରୁରୀ ସାହାଯ୍ୟ"}[lang], "url": "/book"},
+        ]
+
+        return jsonify({
+            "response": response_text,
+            "detected_language": lang,
+            "intent": intent,
+            "action_label": action,
+            "action_url": action_url,
+            "quick_actions": quick_actions,
+            "urgency": "high" if intent == "emergency" else "low",
+        })
+
+    except Exception as e:
+        logger.error(f"Assistant error: {e}")
         return jsonify({"error": str(e)}), 500
 
 

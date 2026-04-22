@@ -263,3 +263,196 @@ KNOWN_MEDICINES = [
     "tramadol", "codeine", "morphine", "diclofenac", "naproxen",
     "amitriptyline", "sertraline", "escitalopram", "alprazolam", "clonazepam",
 ]
+
+MEDICINE_INFO = {
+    "paracetamol": {
+        "uses": "Relieves mild to moderate pain and reduces fever. Used for headache, cold, flu, body aches.",
+        "precautions": "Do not exceed 4g (8 tablets) per day. Avoid alcohol. Check liver function if used long-term.",
+        "category": "Pain Reliever / Antipyretic",
+    },
+    "ibuprofen": {
+        "uses": "Reduces pain, fever, and inflammation. Used for arthritis, dental pain, menstrual cramps.",
+        "precautions": "Take with food to protect the stomach. Avoid if you have kidney problems or stomach ulcers. Not for children under 6 months.",
+        "category": "NSAID / Anti-inflammatory",
+    },
+    "aspirin": {
+        "uses": "Relieves pain and fever. Used in low doses to prevent heart attacks and strokes.",
+        "precautions": "Do not give to children under 16. Avoid if allergic to NSAIDs. Can cause stomach bleeding.",
+        "category": "NSAID / Antiplatelet",
+    },
+    "amoxicillin": {
+        "uses": "Antibiotic used to treat bacterial infections — throat, ear, chest, urinary tract.",
+        "precautions": "Complete the full course even if you feel better. Inform doctor if allergic to penicillin. Can cause rash.",
+        "category": "Antibiotic (Penicillin group)",
+    },
+    "azithromycin": {
+        "uses": "Antibiotic for respiratory tract, skin, and sexually transmitted infections.",
+        "precautions": "Take on empty stomach. Complete full course. Not for patients with heart rhythm problems.",
+        "category": "Antibiotic (Macrolide)",
+    },
+    "ciprofloxacin": {
+        "uses": "Broad-spectrum antibiotic for urinary, digestive, and skin infections.",
+        "precautions": "Avoid dairy and antacids within 2 hours. May cause tendon damage. Avoid in children and pregnant women.",
+        "category": "Antibiotic (Fluoroquinolone)",
+    },
+    "metronidazole": {
+        "uses": "Treats bacterial and parasitic infections — gut infections, dental, gynecological.",
+        "precautions": "Strictly avoid alcohol during treatment and 48 hours after. May cause nausea and metallic taste.",
+        "category": "Antibiotic / Antiparasitic",
+    },
+    "cetirizine": {
+        "uses": "Antihistamine for allergies, hay fever, hives, itching, and runny nose.",
+        "precautions": "May cause drowsiness. Avoid driving or heavy machinery. Avoid alcohol.",
+        "category": "Antihistamine",
+    },
+    "loratadine": {
+        "uses": "Non-drowsy antihistamine for allergies, hay fever, skin allergies.",
+        "precautions": "Generally well tolerated. Use with caution if you have liver disease.",
+        "category": "Antihistamine (Non-sedating)",
+    },
+    "omeprazole": {
+        "uses": "Reduces stomach acid. Used for acid reflux, ulcers, and GERD.",
+        "precautions": "Take 30–60 minutes before meals. Long-term use may reduce magnesium and B12 levels.",
+        "category": "Proton Pump Inhibitor",
+    },
+    "pantoprazole": {
+        "uses": "Reduces stomach acid production. Used for ulcers and acid reflux.",
+        "precautions": "Take before meals. Long-term use needs monitoring for bone density and B12.",
+        "category": "Proton Pump Inhibitor",
+    },
+    "metformin": {
+        "uses": "First-line treatment for type 2 diabetes. Lowers blood glucose levels.",
+        "precautions": "Take with meals to reduce stomach upset. Avoid if kidney function is reduced. Stop before contrast dye procedures.",
+        "category": "Antidiabetic",
+    },
+    "amlodipine": {
+        "uses": "Controls high blood pressure and chest pain (angina).",
+        "precautions": "Take at the same time each day. Do not stop suddenly. May cause ankle swelling.",
+        "category": "Calcium Channel Blocker",
+    },
+    "atenolol": {
+        "uses": "Treats high blood pressure and heart conditions.",
+        "precautions": "Do not stop suddenly — taper slowly. May cause fatigue and cold extremities. Avoid in asthma.",
+        "category": "Beta Blocker",
+    },
+    "losartan": {
+        "uses": "Treats high blood pressure and protects kidneys in diabetic patients.",
+        "precautions": "Avoid in pregnancy. Monitor kidney function and potassium levels regularly.",
+        "category": "ARB (Antihypertensive)",
+    },
+    "atorvastatin": {
+        "uses": "Lowers cholesterol and reduces risk of heart disease.",
+        "precautions": "Take at night. Report unexplained muscle pain. Avoid grapefruit juice.",
+        "category": "Statin (Cholesterol-lowering)",
+    },
+    "salbutamol": {
+        "uses": "Relieves bronchospasm in asthma and COPD. Opens airways quickly.",
+        "precautions": "Rescue inhaler — not for daily prevention. May cause tremors and fast heartbeat.",
+        "category": "Bronchodilator (Reliever)",
+    },
+    "insulin": {
+        "uses": "Controls blood sugar in type 1 and type 2 diabetes.",
+        "precautions": "Keep refrigerated. Never miss a dose. Monitor blood sugar regularly. Know signs of low sugar.",
+        "category": "Antidiabetic (Hormone)",
+    },
+    "sertraline": {
+        "uses": "Treats depression, anxiety, panic disorder, and OCD.",
+        "precautions": "Takes 2–4 weeks to show effect. Do not stop suddenly. Avoid alcohol.",
+        "category": "Antidepressant (SSRI)",
+    },
+    "alprazolam": {
+        "uses": "Short-term relief of anxiety and panic disorders.",
+        "precautions": "Can be habit-forming. Do not use long-term without doctor supervision. Avoid alcohol and driving.",
+        "category": "Anxiolytic (Benzodiazepine)",
+    },
+    "diclofenac": {
+        "uses": "Relieves pain and inflammation in arthritis, injuries, and menstrual pain.",
+        "precautions": "Take with food. Avoid if heart or kidney problems. Do not use in third trimester of pregnancy.",
+        "category": "NSAID / Anti-inflammatory",
+    },
+    "fluconazole": {
+        "uses": "Antifungal medication for oral, throat, and vaginal yeast infections.",
+        "precautions": "Inform doctor of other medications (many interactions). Use caution with liver disease.",
+        "category": "Antifungal",
+    },
+    "domperidone": {
+        "uses": "Relieves nausea, vomiting, and bloating. Helps with delayed gastric emptying.",
+        "precautions": "Take 15–30 minutes before meals. Avoid in heart conditions. Short-term use only.",
+        "category": "Antiemetic / Prokinetic",
+    },
+    "ondansetron": {
+        "uses": "Prevents and treats nausea and vomiting caused by chemotherapy, surgery, or illness.",
+        "precautions": "May cause constipation and headache. Inform doctor of heart conditions.",
+        "category": "Antiemetic (5-HT3 antagonist)",
+    },
+    "doxycycline": {
+        "uses": "Antibiotic for chest, skin, urinary, and sexually transmitted infections. Also used for malaria prevention.",
+        "precautions": "Take with full glass of water. Avoid lying down for 30 min after. Use sunscreen — increases sun sensitivity.",
+        "category": "Antibiotic (Tetracycline)",
+    },
+    "prednisone": {
+        "uses": "Reduces inflammation and suppresses immune responses in allergies, asthma, arthritis.",
+        "precautions": "Do not stop suddenly. Take with food. May raise blood sugar and weaken bones with long use.",
+        "category": "Corticosteroid",
+    },
+    "rifampicin": {
+        "uses": "Key antibiotic in tuberculosis and leprosy treatment.",
+        "precautions": "Turns urine, sweat, and tears orange-red (normal). Never miss doses. Can interact with many drugs.",
+        "category": "Antibiotic (Anti-TB)",
+    },
+    "zinc": {
+        "uses": "Supports immune function, wound healing. Used for zinc deficiency and diarrhea in children.",
+        "precautions": "Do not take on empty stomach (causes nausea). Do not exceed recommended dose.",
+        "category": "Mineral Supplement",
+    },
+    "vitamin c": {
+        "uses": "Supports immune system, skin health, and iron absorption. Prevents scurvy.",
+        "precautions": "High doses may cause kidney stones and diarrhea. Separate from certain medications.",
+        "category": "Vitamin Supplement",
+    },
+    "vitamin d": {
+        "uses": "Essential for bone health and immune function. Treats vitamin D deficiency.",
+        "precautions": "Fat-soluble — do not overdose. Take with fatty meal for best absorption.",
+        "category": "Vitamin Supplement",
+    },
+    "folic acid": {
+        "uses": "Essential for cell growth. Prevents neural tube defects in pregnancy. Treats folate deficiency.",
+        "precautions": "Safe for most people. Take as prescribed during pregnancy.",
+        "category": "Vitamin / Supplement",
+    },
+    "b12": {
+        "uses": "Treats vitamin B12 deficiency. Important for nerve function and red blood cell production.",
+        "precautions": "Very safe. Excess is excreted in urine. Vegetarians / vegans often need supplementation.",
+        "category": "Vitamin Supplement",
+    },
+    "hydroxychloroquine": {
+        "uses": "Treats malaria, lupus, and rheumatoid arthritis.",
+        "precautions": "Regular eye exams needed for long-term use. Take with food. Not for self-medication.",
+        "category": "Antimalarial / DMARD",
+    },
+    "acyclovir": {
+        "uses": "Treats herpes virus infections including cold sores, chickenpox, and shingles.",
+        "precautions": "Start as early as possible. Stay well hydrated. May reduce effectiveness of kidney function.",
+        "category": "Antiviral",
+    },
+    "levothyroxine": {
+        "uses": "Hormone replacement for underactive thyroid (hypothyroidism).",
+        "precautions": "Take on empty stomach, 30–60 min before breakfast. Many drug interactions. Regular blood tests needed.",
+        "category": "Thyroid Hormone",
+    },
+    "furosemide": {
+        "uses": "Removes excess fluid from body. Used in heart failure, kidney disease, high blood pressure.",
+        "precautions": "May cause dehydration and low potassium. Take in morning to avoid nighttime urination. Monitor electrolytes.",
+        "category": "Diuretic",
+    },
+    "clonazepam": {
+        "uses": "Treats seizures, panic disorder, and anxiety.",
+        "precautions": "Can be habit-forming. Avoid alcohol. Do not stop suddenly. Impairs driving.",
+        "category": "Anticonvulsant / Anxiolytic",
+    },
+    "escitalopram": {
+        "uses": "Treats depression and generalized anxiety disorder.",
+        "precautions": "Takes 2–4 weeks to work. Do not stop abruptly. Avoid alcohol.",
+        "category": "Antidepressant (SSRI)",
+    },
+}
