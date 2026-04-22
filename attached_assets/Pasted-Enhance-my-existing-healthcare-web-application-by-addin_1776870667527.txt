@@ -1,0 +1,219 @@
+Enhance my existing healthcare web application by adding a GLOBAL MULTILINGUAL AI ASSISTANT (robot-like system) that guides users through the entire application and integrates with all features.
+
+My app already includes:
+
+* hospital listing, bed and blood availability
+* doctor timing and appointment booking
+* ambulance emergency system
+* AI symptom prediction
+* skin / face / wound detection
+* prescription scanner
+* home care guidance
+
+Now implement the following COMPLETE SYSTEM:
+
+---
+
+1. GLOBAL AI ASSISTANT (ROBOT GUIDE)
+
+* Create a floating assistant icon 🤖 visible on all pages
+* Clicking it opens a chat + voice assistant panel
+
+The assistant should:
+
+* guide users step-by-step through the app
+* suggest actions (not just answer questions)
+* help users use all features
+
+Example:
+"Hello! I can help you. What would you like to do?"
+Options:
+
+* Check Symptoms
+* Upload Image
+* Scan Prescription
+* Find Doctor
+* Emergency Help
+
+---
+
+2. MULTILINGUAL SUPPORT (ENGLISH, HINDI, ODIA)
+
+* Automatically detect user language
+* Respond in the same language
+
+Support:
+
+* English
+
+* Hindi
+
+* Odia
+
+* Create a translation dictionary for:
+
+  * chatbot responses
+  * home care guidance
+  * specialist recommendation
+  * UI labels and buttons
+
+Ensure ALL parts of the app are translated properly (fix existing issue where some parts remain in English).
+
+---
+
+3. VOICE ASSISTANT (INPUT + OUTPUT)
+
+* Add microphone button 🎤
+
+* Convert speech to text (Web Speech API or backend)
+
+* Convert responses to speech using:
+
+  * browser speechSynthesis OR gTTS
+
+* Assistant must:
+
+  * understand English, Hindi, Odia
+  * speak in the detected language
+
+* If Odia voice not available:
+
+  * fallback to English voice but keep text in Odia
+
+---
+
+4. GUIDED NAVIGATION SYSTEM
+
+Assistant should actively guide users:
+
+Examples:
+
+* If user says "I feel sick" → suggest "Check Symptoms"
+
+* If user uploads image → suggest "Analyze condition"
+
+* If prescription scanned → suggest "View medicines"
+
+* Provide clickable buttons for navigation
+
+---
+
+5. SMART ACTION BUTTONS
+
+Include buttons inside assistant:
+
+* Check Symptoms
+* Upload Image
+* Scan Prescription
+* Find Doctor
+* Emergency Help
+
+Clicking should redirect to correct page/feature.
+
+---
+
+6. ELDERLY-FRIENDLY DESIGN
+
+* Use simple language
+* Short sentences
+* Clear instructions
+* Avoid medical jargon
+
+Example:
+"Please click the camera button to upload your image"
+
+---
+
+7. PRESCRIPTION SCANNER IMPROVEMENT
+
+Enhance existing feature:
+
+After scanning:
+
+* Extract text using OCR (pytesseract)
+* Identify medicine names
+* For each medicine show:
+
+  * Name
+  * Uses
+  * Basic precautions
+  * Image (use Google image link or API)
+
+---
+
+8. HOME CARE + SPECIALIST FIX (IMPORTANT)
+
+Fix multilingual issue:
+
+* Ensure home remedies are fully translated
+* Ensure specialist recommendations are fully translated
+* Ensure consistent display in selected language
+
+Example:
+Dermatologist → त्वचा विशेषज्ञ → ଚର୍ମ ଡାକ୍ତର
+
+---
+
+9. BACKEND (FLASK)
+
+Add/update endpoints:
+
+* /assistant (main AI assistant)
+* /scan-prescription (enhanced)
+* /predict (existing)
+* /image-detect (existing)
+
+Assistant should return:
+
+* response text
+* suggested action
+
+Use rule-based logic (keyword + intent detection)
+
+---
+
+10. FRONTEND IMPLEMENTATION
+
+Add:
+
+* floating assistant icon 🤖
+* chat UI (chat bubbles)
+* microphone button 🎤
+* language indicator 🌐
+
+Use JavaScript for:
+
+* speech recognition
+* speech synthesis
+* API calls
+
+---
+
+11. KEEP IT SIMPLE
+
+* Do NOT use heavy AI models
+* Use rule-based chatbot logic
+* Focus on working system
+
+---
+
+12. OUTPUT REQUIRED
+
+Generate:
+
+* Flask backend code
+* assistant logic (intent detection)
+* frontend UI code
+* voice integration code
+* translation dictionary (EN, HI, ODIA)
+* instructions to run
+
+---
+
+13. DISCLAIMER
+
+"This system provides general guidance and is not a medical diagnosis."
+
+---
+
+Ensure the assistant works across all pages and acts as a smart guide for the entire application.
