@@ -8,6 +8,7 @@ import {
   Mic, MicOff, Volume2, VolumeX, Globe, ArrowLeft,
   Send, Bot, User, AlertTriangle, Accessibility, RefreshCw,
 } from "lucide-react";
+import { speakText as speakWithVoice, getRecognitionLang } from "@/lib/voice";
 
 type Language = "en" | "hi" | "od";
 type UrgencyLevel = "low" | "medium" | "high";
@@ -26,12 +27,6 @@ const LANG_LABELS: Record<Language, string> = {
   en: "English",
   hi: "हिंदी",
   od: "ଓଡ଼ିଆ",
-};
-
-const LANG_SPEECH_CODES: Record<Language, string> = {
-  en: "en-IN",
-  hi: "hi-IN",
-  od: "or-IN",
 };
 
 const QUICK_MESSAGES: Record<Language, string[]> = {
@@ -89,14 +84,7 @@ const URGENCY_STYLES: Record<UrgencyLevel, string> = {
 };
 
 function speakText(text: string, lang: Language, rate: number = 0.9) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const plainText = text.replace(/⚠️|🚨|—/g, "").trim();
-  const utterance = new SpeechSynthesisUtterance(plainText);
-  utterance.lang = LANG_SPEECH_CODES[lang];
-  utterance.rate = rate;
-  utterance.pitch = 1;
-  window.speechSynthesis.speak(utterance);
+  speakWithVoice(text, lang, rate);
 }
 
 export default function AIChatbot() {
@@ -108,6 +96,8 @@ export default function AIChatbot() {
   const [elderlyMode, setElderlyMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  const [voiceStatus, setVoiceStatus] = useState<"loading" | "found" | "fallback">("loading");
+  const [voiceName, setVoiceName] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const ui = UI_STRINGS[language];
@@ -116,6 +106,41 @@ export default function AIChatbot() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) setSpeechSupported(false);
   }, []);
+
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return;
+    const FALLBACKS: Record<Language, string[]> = {
+      en: ["en-IN", "en-GB", "en-US", "en"],
+      hi: ["hi-IN", "hi-US", "hi"],
+      od: ["or-IN", "or"],
+    };
+    const check = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) return false;
+      const targets = FALLBACKS[language];
+      let found: SpeechSynthesisVoice | undefined;
+      for (const t of targets) {
+        found = voices.find((v) => v.lang === t);
+        if (found) break;
+      }
+      if (!found) {
+        const prefix = targets[0].split("-")[0].toLowerCase();
+        found = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+      }
+      if (found) {
+        setVoiceStatus("found");
+        setVoiceName(found.name);
+      } else {
+        setVoiceStatus("fallback");
+        setVoiceName("English (fallback)");
+      }
+      return true;
+    };
+    if (!check()) {
+      window.speechSynthesis.addEventListener("voiceschanged", check);
+      return () => window.speechSynthesis.removeEventListener("voiceschanged", check);
+    }
+  }, [language]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -199,7 +224,7 @@ export default function AIChatbot() {
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = LANG_SPEECH_CODES[language];
+    recognition.lang = getRecognitionLang(language);
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
@@ -271,17 +296,27 @@ export default function AIChatbot() {
             ))}
           </div>
 
-          {/* Voice output toggle */}
-          <Button
-            variant={voiceOutput ? "default" : "outline"}
-            size={elderlyMode ? "default" : "sm"}
-            onClick={() => { setVoiceOutput(!voiceOutput); window.speechSynthesis?.cancel(); }}
-            className={elderlyMode ? "h-12 px-4" : ""}
-            title={ui.voice}
-          >
-            {voiceOutput ? <Volume2 className={elderlyMode ? "h-6 w-6" : "h-3.5 w-3.5"} /> : <VolumeX className={elderlyMode ? "h-6 w-6" : "h-3.5 w-3.5"} />}
-            {elderlyMode && <span className="ml-2">{ui.voice}</span>}
-          </Button>
+          {/* Voice output toggle + status */}
+          <div className="flex flex-col items-start gap-0.5">
+            <Button
+              variant={voiceOutput ? "default" : "outline"}
+              size={elderlyMode ? "default" : "sm"}
+              onClick={() => { setVoiceOutput(!voiceOutput); window.speechSynthesis?.cancel(); }}
+              className={elderlyMode ? "h-12 px-4" : ""}
+              title={ui.voice}
+            >
+              {voiceOutput ? <Volume2 className={elderlyMode ? "h-6 w-6" : "h-3.5 w-3.5"} /> : <VolumeX className={elderlyMode ? "h-6 w-6" : "h-3.5 w-3.5"} />}
+              {elderlyMode && <span className="ml-2">{ui.voice}</span>}
+            </Button>
+            {voiceOutput && voiceStatus !== "loading" && (
+              <span className={cn(
+                "text-[10px] leading-none px-1 rounded",
+                voiceStatus === "found" ? "text-green-600" : "text-amber-600"
+              )}>
+                {voiceStatus === "found" ? `🔊 ${voiceName}` : "🔊 English (no native voice)"}
+              </span>
+            )}
+          </div>
 
           {/* Elderly mode toggle */}
           <Button

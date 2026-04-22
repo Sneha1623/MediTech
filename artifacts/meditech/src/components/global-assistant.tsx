@@ -8,6 +8,7 @@ import {
   Bot, X, Mic, MicOff, Volume2, VolumeX, Globe, Send,
   Activity, Camera, FileSearch, Stethoscope, Ambulance, ChevronRight,
 } from "lucide-react";
+import { speakText as speakWithVoice, getRecognitionLang } from "@/lib/voice";
 
 type Language = "en" | "hi" | "od";
 
@@ -22,7 +23,6 @@ interface Message {
 }
 
 const LANG_LABELS: Record<Language, string> = { en: "EN", hi: "HI", od: "OD" };
-const LANG_SPEECH: Record<Language, string> = { en: "en-IN", hi: "hi-IN", od: "or-IN" };
 
 const UI = {
   en: {
@@ -84,13 +84,7 @@ const ACTION_BUTTONS = [
 ] as const;
 
 function speakText(text: string, lang: Language, rate = 0.9) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const clean = text.replace(/[🤖🚨⚠️—•]/g, "").trim();
-  const utt = new SpeechSynthesisUtterance(clean);
-  utt.lang = LANG_SPEECH[lang];
-  utt.rate = rate;
-  window.speechSynthesis.speak(utt);
+  speakWithVoice(text, lang, rate);
 }
 
 export function GlobalAssistant() {
@@ -197,7 +191,7 @@ export function GlobalAssistant() {
     const r = new SR();
     r.continuous = false;
     r.interimResults = false;
-    r.lang = LANG_SPEECH[lang];
+    r.lang = getRecognitionLang(lang);
     r.onresult = (e: any) => {
       const t = e.results[0][0].transcript;
       setInput(t);
