@@ -19,26 +19,19 @@ DISCLAIMER = "This system provides preliminary guidance and is not a medical dia
 # ---------------------------------------------------------------------------
 # Lazy-loaded symptom model
 # ---------------------------------------------------------------------------
-_symptom_model = None
-_symptom_label_encoder = None
+_symptom_model_bundle = None
 
 def get_symptom_model():
-    global _symptom_model, _symptom_label_encoder
-    if _symptom_model is None:
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.preprocessing import LabelEncoder
-        from ml.symptom_data import generate_training_data, SYMPTOMS, DISEASES
+    global _symptom_model_bundle
+    if _symptom_model_bundle is None:
+        from ml.symptom_model import get_symptom_model_bundle
 
-        logger.info("Training symptom prediction model...")
-        X, y = generate_training_data(samples_per_disease=50)
-        le = LabelEncoder()
-        y_enc = le.fit_transform(y)
-        clf = RandomForestClassifier(n_estimators=100, random_state=42, max_depth=10)
-        clf.fit(X, y_enc)
-        _symptom_model = clf
-        _symptom_label_encoder = le
-        logger.info("Symptom model trained successfully.")
-    return _symptom_model, _symptom_label_encoder
+        _symptom_model_bundle = get_symptom_model_bundle()
+        logger.info(
+            "Loaded symptom prediction model",
+            extra={"model_source": _symptom_model_bundle["model_source"]},
+        )
+    return _symptom_model_bundle
 
 
 # ---------------------------------------------------------------------------
@@ -61,16 +54,17 @@ def predict():
         if not symptoms_input or not isinstance(symptoms_input, list):
             return jsonify({"error": "Please provide a list of symptoms"}), 400
 
-        from ml.symptom_data import SYMPTOMS as ALL_SYMPTOMS
+        model_bundle = get_symptom_model()
+        clf = model_bundle["model"]
+        le = model_bundle["label_encoder"]
+        all_symptoms = model_bundle["symptoms"]
 
         symptoms_input_lower = [s.lower().replace(" ", "_") for s in symptoms_input]
 
-        feature_vector = [1 if s in symptoms_input_lower else 0 for s in ALL_SYMPTOMS]
+        feature_vector = [1 if s in symptoms_input_lower else 0 for s in all_symptoms]
 
         if sum(feature_vector) == 0:
             return jsonify({"error": "No recognized symptoms found. Please check symptom names."}), 400
-
-        clf, le = get_symptom_model()
 
         proba = clf.predict_proba([feature_vector])[0]
         top3_idx = proba.argsort()[-3:][::-1]
@@ -92,7 +86,11 @@ def predict():
             "top_predictions": top_predictions,
             "recommended_specialist": specialist,
             "disclaimer": DISCLAIMER,
-            "symptoms_analyzed": [ALL_SYMPTOMS[i] for i, v in enumerate(feature_vector) if v == 1],
+            "symptoms_analyzed": [all_symptoms[i] for i, v in enumerate(feature_vector) if v == 1],
+            "model_source": model_bundle["model_source"],
+            "dataset": model_bundle.get("metadata", {}).get("dataset"),
+            "model_notes": model_bundle.get("metadata", {}).get("notes"),
+            "metrics": model_bundle.get("metadata", {}).get("metrics"),
         })
 
     except Exception as e:
@@ -129,6 +127,8 @@ def image_detect():
             "probabilities": result["probabilities"],
             "recommended_specialist": specialist,
             "disclaimer": DISCLAIMER,
+            "model_source": result.get("model_source"),
+            "dataset": result.get("dataset"),
         })
 
     except Exception as e:
@@ -319,6 +319,24 @@ def specialist_recommendation():
 def list_symptoms():
     from ml.symptom_data import SYMPTOMS, DISEASES
     return jsonify({"symptoms": SYMPTOMS, "diseases": DISEASES})
+
+
+@app.route("/ai-api/model-info", methods=["GET"])
+def model_info():
+    symptom_bundle = get_symptom_model()
+    from ml.dataset_metadata import load_dataset_info
+
+    return jsonify({
+        "symptom_prediction": {
+            "model_source": symptom_bundle["model_source"],
+            "dataset": symptom_bundle.get("metadata", {}).get("dataset"),
+            "metrics": symptom_bundle.get("metadata", {}).get("metrics"),
+            "notes": symptom_bundle.get("metadata", {}).get("notes"),
+        },
+        "skin_detection": {
+            "dataset": load_dataset_info(),
+        },
+    })
 
 
 # ---------------------------------------------------------------------------

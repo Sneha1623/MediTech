@@ -12,6 +12,10 @@ const DISEASES = [
   "Type 2 Diabetes", "Hypertension", "Asthma", "Pneumonia", "Tuberculosis",
   "Food Poisoning", "Urinary Tract Infection", "Migraine", "Anemia",
   "Skin Allergy", "Conjunctivitis", "Arthritis", "Appendicitis", "Gastritis", "Anxiety Disorder",
+  "Acne", "Atopic Dermatitis", "Eczema", "Psoriasis / Lichen Planus",
+  "Fungal Infection", "Ringworm", "Rosacea", "Actinic Keratosis",
+  "Basal Cell Carcinoma", "Melanocytic Nevi", "Melanoma",
+  "Benign Keratosis-like Lesions", "Seborrheic Keratoses", "Viral Warts / Molluscum",
 ];
 
 interface GuidanceResult {

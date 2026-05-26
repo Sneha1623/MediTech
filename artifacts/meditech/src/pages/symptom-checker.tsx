@@ -23,6 +23,19 @@ interface PredictionResult {
   recommended_specialist: string;
   symptoms_analyzed: string[];
   disclaimer: string;
+  model_source?: string;
+  dataset?: {
+    name?: string;
+    source?: string;
+    path?: string;
+    classes?: string[];
+    record_count?: number;
+  };
+  model_notes?: string[];
+  metrics?: {
+    accuracy?: number;
+    macro_avg_f1?: number;
+  } | null;
 }
 
 export default function SymptomChecker() {
@@ -42,10 +55,15 @@ export default function SymptomChecker() {
   };
 
   const handlePredict = async () => {
-    if (selectedSymptoms.length === 0) { setError(s.selectAtLeast); return; }
+    if (selectedSymptoms.length === 0) {
+      setError(s.selectAtLeast);
+      return;
+    }
+
     setLoading(true);
     setResult(null);
     setError(null);
+
     try {
       const res = await fetch("/ai-api/predict", {
         method: "POST",
@@ -162,6 +180,18 @@ export default function SymptomChecker() {
                 <span className="text-sm text-blue-700">{t.specialist.recommended}:</span>
                 <Badge variant="outline" className="border-blue-400 text-blue-700">{result.recommended_specialist}</Badge>
               </div>
+              <div className="text-xs text-blue-800 space-y-1">
+                <p>
+                  Model source: {result.model_source === "trained_clinical_dataset" ? "Trained clinical dataset" : "Synthetic demo model"}
+                </p>
+                {result.dataset?.name && <p>Dataset: {result.dataset.name}</p>}
+                {typeof result.dataset?.record_count === "number" && (
+                  <p>Records in dataset: {result.dataset.record_count}</p>
+                )}
+                {typeof result.metrics?.accuracy === "number" && (
+                  <p>Validation accuracy: {(result.metrics.accuracy * 100).toFixed(1)}%</p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -192,8 +222,17 @@ export default function SymptomChecker() {
           </div>
 
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-            ⚠️ {result.disclaimer}
+            {result.disclaimer}
           </p>
+          {result.model_notes && result.model_notes.length > 0 && (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-4 space-y-1">
+                {result.model_notes.map((note) => (
+                  <p key={note} className="text-xs text-amber-800">{note}</p>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>

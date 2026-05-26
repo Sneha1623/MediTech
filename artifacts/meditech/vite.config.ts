@@ -27,6 +27,9 @@ if (!basePath) {
   );
 }
 
+const apiTarget = process.env.API_BASE_URL ?? "http://127.0.0.1:3001";
+const aiApiTarget = process.env.AI_API_BASE_URL ?? "http://127.0.0.1:5000";
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -135,6 +138,16 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: apiTarget,
+        changeOrigin: true,
+      },
+      "/ai-api": {
+        target: aiApiTarget,
+        changeOrigin: true,
+      },
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],

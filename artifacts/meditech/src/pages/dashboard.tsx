@@ -59,6 +59,9 @@ export default function Dashboard() {
     query: { queryKey: getGetRecentBookingsQueryKey() }
   });
 
+  const criticalHospitalsList = Array.isArray(criticalHospitals) ? criticalHospitals : [];
+  const recentBookingsList = Array.isArray(recentBookings) ? recentBookings : [];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -90,9 +93,9 @@ export default function Dashboard() {
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
               </div>
-            ) : recentBookings && recentBookings.length > 0 ? (
+            ) : recentBookingsList.length > 0 ? (
               <div className="space-y-4">
-                {recentBookings.map((booking) => (
+                {recentBookingsList.map((booking) => (
                   <div key={booking.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                     <div>
                       <p className="font-medium">{booking.patientName}</p>
@@ -130,9 +133,9 @@ export default function Dashboard() {
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
               </div>
-            ) : criticalHospitals && criticalHospitals.length > 0 ? (
+            ) : criticalHospitalsList.length > 0 ? (
               <div className="space-y-4">
-                {criticalHospitals.map((hospital) => (
+                {criticalHospitalsList.map((hospital) => (
                   <div key={hospital.id} className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-foreground">{hospital.name}</p>

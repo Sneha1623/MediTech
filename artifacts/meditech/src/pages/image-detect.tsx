@@ -15,6 +15,14 @@ interface DetectionResult {
   probabilities: Record<string, number>;
   recommended_specialist: string;
   disclaimer: string;
+  model_source?: string;
+  dataset?: {
+    name?: string;
+    source?: string;
+    path?: string;
+    classes?: string[];
+    image_count?: number;
+  };
 }
 
 const CONDITION_COLORS: Record<string, string> = {
@@ -66,6 +74,9 @@ export default function ImageDetect() {
   };
 
   const cardColorClass = result ? (CONDITION_COLORS[result.label] || "bg-blue-50 border-blue-200") : "";
+  const modelSourceLabel = result?.model_source && result.model_source !== "fallback_rules"
+    ? "Trained model"
+    : "Fallback rules";
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -142,6 +153,13 @@ export default function ImageDetect() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">{t.specialist.recommended}:</span>
                 <Badge variant="outline">{result.recommended_specialist}</Badge>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Model source: {modelSourceLabel}</p>
+                {result.dataset?.name && <p>Dataset: {result.dataset.name}</p>}
+                {typeof result.dataset?.image_count === "number" && (
+                  <p>Images in training dataset: {result.dataset.image_count}</p>
+                )}
               </div>
             </CardContent>
           </Card>

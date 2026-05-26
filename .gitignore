@@ -47,3 +47,11 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Python/generated files
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Generated ML outputs
+artifacts/ai-backend/artifacts/models/
